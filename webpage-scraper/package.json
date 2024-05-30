@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "denque": "^2.1.0",
+    "fs": "^0.0.1-security",
+    "puppeteer": "^22.10.0",
+    "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12"
+  }
+}
