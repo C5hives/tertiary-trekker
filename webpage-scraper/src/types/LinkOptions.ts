@@ -1,6 +1,6 @@
 type LinkOptions = {
-    start: string[],
-    ignore: string[]
+    start: string[];
+    ignore: string[];
 };
 
 export default LinkOptions;

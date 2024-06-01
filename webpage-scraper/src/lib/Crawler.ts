@@ -57,7 +57,7 @@ class Crawler {
             console.log(`Starting to scrape ${url}`);
             await this.scrapeWebsite(url, page, savePath);
             console.log(`Scrape complete for ${url}`);
-            
+
             // close page after scraping is done
             page.close();
 
@@ -80,7 +80,7 @@ class Crawler {
             const cleanedUrls: Set<string> = this.buildAndCleanUrls(newLinks, url);
             this.addLinksToBeVisited(cleanedUrls);
 
-            await WebpageDownloader.saveToFile(savePath, url, content);           
+            await WebpageDownloader.saveToFile(savePath, url, content);
         } catch (error) {
             console.error(error);
         } finally {
@@ -98,13 +98,13 @@ class Crawler {
         }
 
         if (response.status() >= 300 && response.status() <= 399) {
-            console.log('Redirect from', response.url(), 'to', response.headers()['location'])
+            console.log('Redirect from', response.url(), 'to', response.headers()['location']);
         }
 
         if (!response.ok()) {
             throw new Error(`Failed to fetch content from ${url}`);
         }
-        
+
         return await page.content();
     }
 
@@ -113,8 +113,8 @@ class Crawler {
         const uniqueUrls: Set<string> = new Set<string>();
         const $ = cheerio.load(content);
         // find <a> tags in the html and save their href attribute
-        $("a").each(function () {
-            const link: string | undefined = $(this).attr("href");
+        $('a').each(function () {
+            const link: string | undefined = $(this).attr('href');
             if (link === undefined) {
                 return;
             }
@@ -124,14 +124,14 @@ class Crawler {
     }
 
     private buildAndCleanUrls(rawUrls: Set<string>, baseUrl: string): Set<string> {
-        const cleanedUrls: Set<string> = new Set<string>;
+        const cleanedUrls: Set<string> = new Set<string>();
         for (const url of rawUrls) {
             // parsed url in html may be a relative link, need to get full url if so
             const fullUrl = UrlBuilder.buildFullUrl(url, baseUrl);
             // remove additional parameters at the end of the url
             const cleanedUrl = UrlBuilder.cleanUrl(fullUrl);
 
-            if (cleanedUrl === "") {
+            if (cleanedUrl === '') {
                 continue;
             }
             cleanedUrls.add(cleanedUrl);
@@ -158,7 +158,7 @@ class Crawler {
         }
         return;
     }
-    
+
     private resetCrawlingTrackers() {
         // remove all previous links
         this.linksToVisit = new Denque<string>();
