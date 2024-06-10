@@ -1,6 +1,7 @@
 import Crawler from './Crawler';
 import fs from 'fs';
 import path from 'path';
+import crawlerConfig from '../../config/crawler.json';
 
 class CrawlJob {
     private rootDirectory: string;
@@ -23,27 +24,20 @@ class CrawlJob {
      * @returns An void Promise
      */
     public async run(): Promise<void> {
-        const savePath = path.join(this.rootDirectory, CrawlJob.generateFolderName());
-        const crawler: Crawler = new Crawler();
+        const linkConfig = require(crawlerConfig.linkLocation);
+        const folderName = CrawlJob.generateFolderName();
+        
+        for (const university of linkConfig.universities) {
+            const savePath = path.join(this.rootDirectory, folderName, university.name);
+            const linksToVisit = university.include;
+            const linksToIgnore = university.exclude.concat(linkConfig.globalExclude);
 
-        // read links from some external file
-
-        // const links: string[] = [
-        //     Universities.NUS,
-        //     Universities.NTU,
-        //     Universities.SIT,
-        //     Universities.SMU,
-        //     Universities.SUSS,
-        //     Universities.SUTD
-        // ];
-
-        const startingLinks = this.parseStartingLinks();
-        const excludeLinks = this.parseLinksToExclude();
-
-        await crawler.scrapeAll(savePath, {
-            start: startingLinks,
-            ignore: excludeLinks
-        });
+            const crawler: Crawler = new Crawler(savePath, linksToVisit, linksToIgnore);
+            await crawler.scrapeAll();
+            break;
+        }
+        
+        Crawler.closeBrowser();
         return;
     }
 
@@ -54,30 +48,6 @@ class CrawlJob {
      */
     private static generateFolderName(): string {
         return 'crawl-job_' + CrawlJob.getCurrentDateAsString();
-    }
-
-    /**
-     * Reads from ./config/exclude.txt and returns an array of urls.
-     *
-     * @remarks
-     * These urls will not be crawled by the web crawler.
-     *
-     * @returns An array of urls
-     */
-    private parseLinksToExclude(): string[] {
-        return fs.readFileSync('./config/exclude.txt').toString('utf8').split('\r\n');
-    }
-
-    /**
-     * Reads from ./config/visit.txt and returns an array of urls.
-     *
-     * @remarks
-     * These urls will be crawled by the web crawler.
-     *
-     * @returns An array of urls
-     */
-    private parseStartingLinks(): string[] {
-        return fs.readFileSync('./config/visit.txt').toString('utf8').split('\r\n');
     }
 
     /**

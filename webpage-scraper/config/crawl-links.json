@@ -1,0 +1,67 @@
+{
+    "universities": [
+        {
+            "name": "nus",
+            "include": [
+                "https://www.nus.edu.sg/oam/",
+                "https://nusgs.nus.edu.sg/"
+
+            ],
+            "exclude" : [
+                "https://telegram.org/",
+                "https://t.me/"
+            ]
+        },
+        {
+            "name": "ntu",
+            "include": [
+                "https://www.ntu.edu.sg"
+            ],
+            "exclude" : [
+                "https://intranet.ntu.edu.sg",
+                "https://student-intranet.ntu.edu.sg"
+            ]
+        },
+        {
+            "name": "sit",
+            "include": [
+                "https://www.singaporetech.edu.sg"
+            ],
+            "exclude" : []
+        },
+        {
+            "name": "smu",
+            "include": [
+                "https://www.smu.edu.sg"
+            ],
+            "exclude" : []
+        },
+        {
+            "name": "suss",
+            "include": [
+                "https://www.suss.edu.sg"
+            ],
+            "exclude" : []
+        },
+        {
+            "name": "sutd",
+            "include": [
+                "https://www.sutd.edu.sg"
+            ],
+            "exclude" : []
+        }
+    ],
+    "globalExclude": [
+        "https://www.instagram.com",
+        "https://www.linkedin.com",
+        "https://www.soundcloud.com/",
+        "https://www.youtube.com/",
+        "https://www.twitter.com/",
+        "https://www.google.com/",
+        "https://www.forbes.com/",
+        "https://www.tiktok.com/"
+    ]
+}
+
+
+
