@@ -1,6 +1,7 @@
 import cheerio = require('cheerio');
 import Denque from 'denque';
-import puppeteer, { Browser, Page } from 'puppeteer';
+import { Browser, HTTPResponse, Page } from 'puppeteer'
+import puppeteer from 'puppeteer-extra';
 import UrlBuilder from '../utils/UrlBuilder';
 import WebpageDownloader from './WebpageDownloader';
 
@@ -8,17 +9,24 @@ class Crawler {
     private static browser: Browser;
     
     private startLinks: string [] = new Array();
-    private excludeLinks: string[] = new Array();
+    private linkPattern: string = '';
     private savePath: string = '';
+
+    // trackers for crawling
+    private linksToVisit: Denque<string>;
+    private visitedLinks: Set<string>;
 
     /**
      * Main constructor.
      */
-    public constructor(savePath: string, startLinks: string[], excludeLinks: string[]) {
+    public constructor(savePath: string, startLinks: string[], linkPattern: string) {
         this.startLinks = startLinks;
-        this.excludeLinks = excludeLinks;
+        this.linkPattern = linkPattern;
 
         this.savePath = savePath;
+
+        this.linksToVisit = new Denque<string>();
+        this.visitedLinks = new Set<string>();
     }
 
     /**
@@ -30,13 +38,16 @@ class Crawler {
      * @returns A void Promise
      */
     public static async initBrowser(): Promise<void> {
+        const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+        puppeteer.use(StealthPlugin());
+
         Crawler.browser = await puppeteer.launch({
             headless: true
         });
     }
 
     public static async closeBrowser(): Promise<void> {
-        Crawler.browser.close();
+        await Crawler.browser.close();
     }
 
     /**
@@ -48,7 +59,7 @@ class Crawler {
      */
     public async scrapeAll(): Promise<void> {
         if (this.startLinks.length < 1) {
-            console.log('No starting links provided. Ending scraping attempt.');
+            console.log('[WARN] No starting links provided. Ending scraping attempt.');
         }
 
         // initialize browser object if not already done so
@@ -56,66 +67,57 @@ class Crawler {
             await Crawler.initBrowser();
         }
 
-        const page: Page = await Crawler.browser.newPage();
+        // reset web crawling trackers
+        this.visitedLinks = new Set<string>();
+        this.linksToVisit = new Denque<string>();
 
-        // trackers for crawling
-        const visitedLinks: Set<string> = new Set<string>();
-
-        const linksToVisit: Denque<string> = new Denque<string>();
         // add links for crawler to start with
         for (const link of this.startLinks) {
-            linksToVisit.push(link);
-        }
-        
-        const linksToIgnore: Set<string> = new Set<string>();
-        // add links for crawler to ignore
-        for (const link of this.excludeLinks) {
-            linksToIgnore.add(link);
+            this.linksToVisit.push(link);
         }
 
         let numberOfWebsitesCrawled = 0;
 
-        while (!linksToVisit.isEmpty()) {
+        while (!this.linksToVisit.isEmpty()) {
             // calling Denque::shift() will not produce undefined
-            const url = linksToVisit.shift()!;
+            const url = this.linksToVisit.shift()!;
 
             // check if link has already been visited
             // if so, skip
-            if (visitedLinks.has(url)) {
-                // console.log(`[INFO] Skipping duplicate link ${url}`);
+            if (this.visitedLinks.has(url)) {
+                console.log(`[INFO] Skipping duplicate link ${url}`);
                 continue;
             }
 
-            if (this.isExcluded(url, linksToIgnore)) {
-                // console.log(`[INFO] Ignoring link ${url}`);
+            // ignores urls that do not have linkPattern as a substring
+            // this prevents the crawler from navigating out of the domain
+            if (url.indexOf(this.linkPattern) < 0) {
+                console.log(`[INFO] Ignoring link ${url}`);
                 continue;
             }
 
-            console.log(`[INFO] Starting to scrape ${url}`);
+            console.log(`[INFO] Crawling ${url}`);
             try {
+                const page: Page = await Crawler.browser.newPage();
                 const content: string = await this.getContentFromUrl(page, url);
 
                 const newLinks: string[] = this.discoverUniqueLinks(content);
                 const cleanUrls: string[] = this.buildAndCleanUrls(newLinks, url);
-                console.log(`[INFO] ${cleanUrls.length} new links discovered`);
-                // console.log(`${cleanUrls} from ${url}`);
+
                 for (const cleanUrl of cleanUrls) {
-                    linksToVisit.push(cleanUrl);
+                    this.linksToVisit.push(cleanUrl);
                 }
                 
                 await WebpageDownloader.saveToFile(this.savePath, url, content);
+                // console.log(`[INFO] Scrape complete for ${url}`);
+                await page.close();
             } catch (error) {
-                console.error(error);
+                console.error(`[ERROR] ${error}`);
             } finally {
-                visitedLinks.add(url);
+                this.visitedLinks.add(url);
+                numberOfWebsitesCrawled += 1;
             }
-            console.log(`[INFO] Scrape complete for ${url}`);
-
-            numberOfWebsitesCrawled += 1;
         }
-
-        // close page after scraping is done
-        page.close();
 
         console.log(`[INFO] ${numberOfWebsitesCrawled} links crawled`);
 
@@ -130,9 +132,8 @@ class Crawler {
      * @returns A Promise containing the contents of the website
      */
     private async getContentFromUrl(page: Page, url: string): Promise<string> {
-        //await page.setJavaScriptEnabled(false);
         // Navigate the page to a URL
-        const response = await page.goto(url, { waitUntil: 'domcontentloaded' });
+        const response: HTTPResponse | null = await page.goto(url, { waitUntil: 'domcontentloaded' });
 
         if (response == null) {
             // TODO: maybe add something to keep track of failed crawl attempts to retry later/log
@@ -140,14 +141,10 @@ class Crawler {
         }
 
         if (response.status() >= 300 && response.status() <= 399) {
-            console.log('Redirect from', response.url(), 'to', response.headers()['location']);
+            console.log('[INFO] Redirect from', response.url(), 'to', response.headers()['location']);
         }
 
-        console.log(`[INFO] Response status: ${response.status()}`);
-
-        // if (!response.ok()) {
-        //     throw new Error(`Failed to fetch content from ${url}`);
-        // }
+        // console.log(`[INFO] Response status: ${response.status()}`);
 
         return await page.content();
     }
@@ -248,6 +245,12 @@ class Crawler {
      * @returns A boolean
      */
     private isExcluded(url: string, linksToIgnore: Set<string>): boolean {
+        if (url.includes("nus.edu.sg")) {
+            return false;
+        } else {
+            return true;
+        }
+        
         for (const link of linksToIgnore) {
             if (url.startsWith(link)) {
                 return true;

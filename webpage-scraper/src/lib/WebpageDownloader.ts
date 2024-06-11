@@ -20,7 +20,7 @@ class WebpageDownloader {
             // save parsed content to a html file
             await fs.promises.writeFile(filePath, content, 'utf-8');
 
-            // console.log(`[INFO] File saved as: ${filePath}`);
+            console.log(`[INFO] File saved as: ${filePath}`);
         } catch (error) {
             console.error(error);
         }
@@ -47,12 +47,12 @@ class WebpageDownloader {
         }
 
         // determine the name for the html file,
-        let relativePath = 'index.html';
-        // if (pathName === '') {
-        //     relativePath = 'index.html';
-        // } else {
-        //     relativePath = `${pathName}.html`;
-        // }
+        let relativePath = '';
+        if (pathName === '') {
+            relativePath = 'index.html';
+        } else {
+            relativePath = `${pathName}\\index.html`;
+        }
 
         // replace '/' with '\' to fit with file path syntax
         relativePath = relativePath.replace(/\//g, path.sep);

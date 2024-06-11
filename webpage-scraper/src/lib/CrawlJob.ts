@@ -30,14 +30,15 @@ class CrawlJob {
         for (const university of linkConfig.universities) {
             const savePath = path.join(this.rootDirectory, folderName, university.name);
             const linksToVisit = university.include;
-            const linksToIgnore = university.exclude.concat(linkConfig.globalExclude);
+            //const linksToIgnore = university.exclude.concat(linkConfig.globalExclude);
+            const linkPattern = university.linkMustContain;
 
-            const crawler: Crawler = new Crawler(savePath, linksToVisit, linksToIgnore);
+            const crawler: Crawler = new Crawler(savePath, linksToVisit, linkPattern);
             await crawler.scrapeAll();
-            break;
+            console.log(`${university} done.`);
         }
         
-        Crawler.closeBrowser();
+        await Crawler.closeBrowser();
         return;
     }
 

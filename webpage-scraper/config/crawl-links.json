@@ -3,63 +3,59 @@
         {
             "name": "nus",
             "include": [
-                "https://www.nus.edu.sg/oam/",
-                "https://nusgs.nus.edu.sg/"
+                "https://www.nus.edu.sg/"
 
             ],
-            "exclude" : [
-                "https://telegram.org/",
-                "https://t.me/"
-            ]
+            "linkMustContain": "nus.edu.sg"
         },
         {
             "name": "ntu",
             "include": [
                 "https://www.ntu.edu.sg"
             ],
-            "exclude" : [
-                "https://intranet.ntu.edu.sg",
-                "https://student-intranet.ntu.edu.sg"
-            ]
+            "linkMustContain": "ntu.edu.sg"
         },
         {
             "name": "sit",
             "include": [
                 "https://www.singaporetech.edu.sg"
             ],
-            "exclude" : []
+            "linkMustContain": "singaporetech.edu.sg"
         },
         {
             "name": "smu",
             "include": [
                 "https://www.smu.edu.sg"
             ],
-            "exclude" : []
+            "linkMustContain": "smu.edu.sg"
         },
         {
             "name": "suss",
             "include": [
                 "https://www.suss.edu.sg"
             ],
-            "exclude" : []
+            "linkMustContain": "suss.edu.sg"
         },
         {
             "name": "sutd",
             "include": [
                 "https://www.sutd.edu.sg"
             ],
-            "exclude" : []
+            "linkMustContain": "sutd.edu.sg"
         }
     ],
     "globalExclude": [
-        "https://www.instagram.com",
-        "https://www.linkedin.com",
+        "https://www.instagram.com/",
+        "https://www.linkedin.com/",
         "https://www.soundcloud.com/",
         "https://www.youtube.com/",
         "https://www.twitter.com/",
         "https://www.google.com/",
         "https://www.forbes.com/",
-        "https://www.tiktok.com/"
+        "https://www.tiktok.com/",
+        "https://www.instagram.com/",
+        "https://telegram.org/",
+        "https://t.me/"
     ]
 }
 
