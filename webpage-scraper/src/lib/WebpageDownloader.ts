@@ -20,7 +20,7 @@ class WebpageDownloader {
             // save parsed content to a html file
             await fs.promises.writeFile(filePath, content, 'utf-8');
 
-            console.log(`[INFO] File saved as: ${filePath}`);
+            // console.log(`[INFO] File saved as: ${filePath}`);
         } catch (error) {
             console.error(error);
         }

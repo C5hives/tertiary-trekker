@@ -1,18 +1,41 @@
 import Crawler from './Crawler';
-import fs from 'fs';
 import path from 'path';
-import crawlerConfig from '../../config/crawler.json';
+import jobConfig from '../../config/job-config.json';
+import JobConfig from '../types/JobConfig';
+import JobDate from '../utils/JobDate';
+import LinkTracker from './LinkTracker';
+import LinkOptions from '../types/LinkOptions';
+import UniversityConfig from '../types/UniversityConfig';
 
 class CrawlJob {
+    private jobConfig: JobConfig = jobConfig;
+    private linkOptions: LinkOptions;
+
     private rootDirectory: string;
+    private databaseFilePath: string;
+
+    private jobId: string;
+
+    private trackers: Map<UniversityConfig, LinkTracker>;
 
     /**
      * Main constructor.
      *
      * @param rootDirectory - The file path to save scraped webpage files to
      */
-    public constructor(rootDirectory: string) {
-        this.rootDirectory = rootDirectory;
+    public constructor(jobId: string = CrawlJob.generateFolderName()) {
+        this.linkOptions = require(this.jobConfig.linkLocation);
+
+        this.rootDirectory = path.resolve(this.jobConfig.downloadRootDirectory);
+        this.databaseFilePath = path.resolve(this.jobConfig.databaseLocation);
+
+        this.jobId = jobId;
+
+        // initialise trackers for each university category
+        this.trackers = new Map<UniversityConfig, LinkTracker>();
+        for (const university of this.linkOptions.universities) {
+            this.trackers.set(university, new LinkTracker(this.databaseFilePath, this.jobId, university.name));
+        }
     }
 
     /**
@@ -23,22 +46,68 @@ class CrawlJob {
      *
      * @returns An void Promise
      */
-    public async run(): Promise<void> {
-        const linkConfig = require(crawlerConfig.linkLocation);
-        const folderName = CrawlJob.generateFolderName();
-        
-        for (const university of linkConfig.universities) {
-            const savePath = path.join(this.rootDirectory, folderName, university.name);
-            const linksToVisit = university.include;
-            //const linksToIgnore = university.exclude.concat(linkConfig.globalExclude);
-            const linkPattern = university.linkMustContain;
+    public async run(): Promise<void> {        
+        await this.saveConfigsToDatabase();
+        await this.crawl(1000);
+        return;
+    }
 
-            const crawler: Crawler = new Crawler(savePath, linksToVisit, linkPattern);
-            await crawler.scrapeAll();
-            console.log(`${university} done.`);
+    public async crawl(numberToCrawlPerCategory: number): Promise<void> {
+        for (const [university, tracker] of this.trackers.entries()) {
+            const savePath: string = path.join(this.rootDirectory, this.jobId, university.name);
+            const linkPatterns: string[] = university.linkMustContain;
+            const crawler: Crawler = new Crawler(savePath, linkPatterns, tracker);
+
+            const urls: string[] = await tracker.getUnvisitedUrls(numberToCrawlPerCategory);
+            
+            await crawler.scrapeAll(urls);
         }
-        
-        await Crawler.closeBrowser();
+    }
+
+    public async saveConfigsToDatabase(): Promise<void> {
+        await this.saveUniversityConfigsToDatabase();
+        await this.saveGlobalConfigsToDatabase();
+        return;
+    }
+
+    private async saveUniversityConfigsToDatabase(): Promise<void> {
+        for (const university of this.linkOptions.universities) {
+            try {
+                const tracker: LinkTracker = this.trackers.get(university)!;
+                await this.updateExclusions(tracker, university.exclude);
+                await this.updateInclusions(tracker, university.include);
+            } catch (err) {
+                console.log(`${university.name} link config failed to update due to ${err}`);
+            }
+        }
+        return;
+    }
+
+    private async saveGlobalConfigsToDatabase(): Promise<void> {
+        try {
+            const tracker: LinkTracker = new LinkTracker(this.databaseFilePath, this.jobId, "global");
+            await this.updateExclusions(tracker, this.linkOptions.globalExclude);
+        } catch (err) {
+            console.log(`Global link config failed to update due to ${err}`);
+        }
+        return;
+    }
+
+    private async updateExclusions(tracker: LinkTracker, urls: string[]): Promise<void> {
+        if (urls.length < 1) {
+            return;
+        }
+
+        await tracker.insertNewUrlsToExclude(urls);
+        return;
+    }
+
+    private async updateInclusions(tracker: LinkTracker, urls: string[]): Promise<void> {
+        if (urls.length < 1) {
+            return;
+        }
+
+        await tracker.insertNewUrlsToVisit(urls);
         return;
     }
 
@@ -48,7 +117,7 @@ class CrawlJob {
      * @returns A folder name for a crawl job.
      */
     private static generateFolderName(): string {
-        return 'crawl-job_' + CrawlJob.getCurrentDateAsString();
+        return ['crawlJob', CrawlJob.getCurrentDateAsString()].join("_");
     }
 
     /**
@@ -57,21 +126,12 @@ class CrawlJob {
      * @returns The current date and time as a string
      */
     private static getCurrentDateAsString(): string {
-        const currentDate: Date = new Date();
-        const formatOptions: Intl.DateTimeFormatOptions = { hour12: false };
-
-        const dateString: string = currentDate.toLocaleString('en-SG', formatOptions).replace(new RegExp('[/:]', 'g'), '-').replace(/,/g, '_').replace(/\s+/g, '');
-
-        return dateString;
-    }
-
-    /**
-     * Setter for the class field rootDirectory.
-     *
-     * @param rootDirectory - The new root directory
-     */
-    public changeRootDirectory(rootDirectory: string): void {
-        this.rootDirectory = rootDirectory;
+        const dateString: string = JobDate.getCurrentDateString();
+        
+        return dateString
+            .replace(new RegExp('[/:]', 'g'), '')
+            .replace(/,/g, '_')
+            .replace(/\s+/g, '');
     }
 }
 

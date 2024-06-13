@@ -1,53 +1,32 @@
 import cheerio = require('cheerio');
-import Denque from 'denque';
-import { Browser, HTTPResponse, Page } from 'puppeteer'
+import { HTTPResponse, Page } from 'puppeteer'
 import puppeteer from 'puppeteer-extra';
 import UrlBuilder from '../utils/UrlBuilder';
 import WebpageDownloader from './WebpageDownloader';
+import { Cluster } from 'puppeteer-cluster';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import LinkTracker from './LinkTracker';
 
 class Crawler {
-    private static browser: Browser;
-    
-    private startLinks: string [] = new Array();
-    private linkPattern: string = '';
-    private savePath: string = '';
+    private savePath: string;
+    private linkPatterns: string[];
 
-    // trackers for crawling
-    private linksToVisit: Denque<string>;
-    private visitedLinks: Set<string>;
+    private discoveredLinks: Set<string>;
+    private visitedLinks: Map<string, string>;
+
+    private tracker: LinkTracker;
 
     /**
      * Main constructor.
      */
-    public constructor(savePath: string, startLinks: string[], linkPattern: string) {
-        this.startLinks = startLinks;
-        this.linkPattern = linkPattern;
-
+    public constructor(savePath: string, linkPatterns: string[], tracker: LinkTracker) {
         this.savePath = savePath;
+        this.linkPatterns = linkPatterns;
 
-        this.linksToVisit = new Denque<string>();
-        this.visitedLinks = new Set<string>();
-    }
+        this.discoveredLinks = new Set<string>();
+        this.visitedLinks = new Map<string, string>();
 
-    /**
-     * Initializes the browser used to visit webpages.
-     *
-     * @remarks
-     * This operation is not included in the constructor because of its async nature.
-     *
-     * @returns A void Promise
-     */
-    public static async initBrowser(): Promise<void> {
-        const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-        puppeteer.use(StealthPlugin());
-
-        Crawler.browser = await puppeteer.launch({
-            headless: true
-        });
-    }
-
-    public static async closeBrowser(): Promise<void> {
-        await Crawler.browser.close();
+        this.tracker = tracker;
     }
 
     /**
@@ -57,70 +36,87 @@ class Crawler {
      * @param options - The urls to include and exclude when web crawling
      * @returns A void Promise
      */
-    public async scrapeAll(): Promise<void> {
-        if (this.startLinks.length < 1) {
-            console.log('[WARN] No starting links provided. Ending scraping attempt.');
+    public async scrapeAll(urls: string[]): Promise<void> {
+        if (urls.length < 1) {
+            return Promise.resolve();
         }
 
-        // initialize browser object if not already done so
-        if (!Crawler.browser) {
-            await Crawler.initBrowser();
+        this.discoveredLinks = new Set<string>();
+        this.visitedLinks = new Map<string, string>();
+
+        const cluster = await Cluster.launch({
+            concurrency: Cluster.CONCURRENCY_CONTEXT,
+            maxConcurrency: 5,
+            puppeteerOptions: { headless: true},
+            retryLimit: 2,
+            sameDomainDelay: 1000,
+            skipDuplicateUrls: true,
+            timeout: 30000,
+            monitor: false,
+            workerCreationDelay: 100,
+            puppeteer: puppeteer.use(StealthPlugin())
+        });
+    
+        // set function that each worker will run
+        await cluster.task(this.crawlUrl); 
+        
+        for (const url of urls) {
+            cluster.queue({
+                url: url,
+                crawler: this
+            });
         }
+        
+        await cluster.idle();
+        await cluster.close();
 
-        // reset web crawling trackers
-        this.visitedLinks = new Set<string>();
-        this.linksToVisit = new Denque<string>();
-
-        // add links for crawler to start with
-        for (const link of this.startLinks) {
-            this.linksToVisit.push(link);
+        try {
+            await this.markCrawledLinksAsVisited();
+            await this.addNewLinks();
+        } catch (err) {
+            console.log(`Failed to update crawl results into database due to: ${err}`);
         }
+        return;
+    }
 
-        let numberOfWebsitesCrawled = 0;
+    private async markCrawledLinksAsVisited(): Promise<void> {
+        for (const [url, outcome] of this.visitedLinks.entries()) {
+            await this.tracker.markUrlAsVisited(url, outcome);
+        }
+        return;
+    }
 
-        while (!this.linksToVisit.isEmpty()) {
-            // calling Denque::shift() will not produce undefined
-            const url = this.linksToVisit.shift()!;
+    private async addNewLinks(): Promise<void> {
+        const urls: string[] = Array.from(this.discoveredLinks.values());
+        await this.tracker.insertNewUrlsToVisit(urls);
+        return;
+    }
 
-            // check if link has already been visited
-            // if so, skip
-            if (this.visitedLinks.has(url)) {
-                console.log(`[INFO] Skipping duplicate link ${url}`);
-                continue;
-            }
+    private async crawlUrl(jsObject: { page: Page, data: { url: string, crawler: Crawler }}): Promise<void> {
+        const page = jsObject.page;
+        const url = jsObject.data.url;
+        const crawler = jsObject.data.crawler;
 
-            // ignores urls that do not have linkPattern as a substring
-            // this prevents the crawler from navigating out of the domain
-            if (url.indexOf(this.linkPattern) < 0) {
-                console.log(`[INFO] Ignoring link ${url}`);
-                continue;
-            }
+        page.setDefaultNavigationTimeout(10000);
 
-            console.log(`[INFO] Crawling ${url}`);
-            try {
-                const page: Page = await Crawler.browser.newPage();
-                const content: string = await this.getContentFromUrl(page, url);
+        try {
+            const content: string = await crawler.getContentFromUrl(page, url);
 
-                const newLinks: string[] = this.discoverUniqueLinks(content);
-                const cleanUrls: string[] = this.buildAndCleanUrls(newLinks, url);
+            const newLinks: string[] = crawler.discoverUniqueLinks(content);
+            const cleanUrls: string[] = crawler.buildAndCleanUrls(newLinks, url);
 
-                for (const cleanUrl of cleanUrls) {
-                    this.linksToVisit.push(cleanUrl);
+            for (const cleanUrl of cleanUrls) {
+                if (crawler.shouldCrawl(cleanUrl)) {
+                    crawler.discoveredLinks.add(cleanUrl);
                 }
-                
-                await WebpageDownloader.saveToFile(this.savePath, url, content);
-                // console.log(`[INFO] Scrape complete for ${url}`);
-                await page.close();
-            } catch (error) {
-                console.error(`[ERROR] ${error}`);
-            } finally {
-                this.visitedLinks.add(url);
-                numberOfWebsitesCrawled += 1;
             }
+            
+            await WebpageDownloader.saveToFile(crawler.savePath, url, content);
+            crawler.visitedLinks.set(url, "ok");
+        } catch (error) {
+            console.error(`[ERROR] Failed to complete crawl due to: ${error}`);
+            crawler.visitedLinks.set(url, "error");
         }
-
-        console.log(`[INFO] ${numberOfWebsitesCrawled} links crawled`);
-
         return;
     }
 
@@ -133,19 +129,11 @@ class Crawler {
      */
     private async getContentFromUrl(page: Page, url: string): Promise<string> {
         // Navigate the page to a URL
-        const response: HTTPResponse | null = await page.goto(url, { waitUntil: 'domcontentloaded' });
-
+        let response: HTTPResponse | null = await page.goto(url, { waitUntil: 'domcontentloaded' });
+        
         if (response == null) {
-            // TODO: maybe add something to keep track of failed crawl attempts to retry later/log
-            throw new Error(`[ERROR] Failed to fetch content from ${url}`);
+            return Promise.reject(`[ERROR] No response. Failed to fetch content from ${url}`);
         }
-
-        if (response.status() >= 300 && response.status() <= 399) {
-            console.log('[INFO] Redirect from', response.url(), 'to', response.headers()['location']);
-        }
-
-        // console.log(`[INFO] Response status: ${response.status()}`);
-
         return await page.content();
     }
 
@@ -192,67 +180,16 @@ class Crawler {
         return Array.from(cleanedUrls.values());
     }
 
-    /**
-     * Updates the links that should be visited when web crawling.
-     *
-     * @param urls - An array of urls
-     */
-    // private populateStartLinks(urls: string[]): void {
-    //     for (const url of urls) {
-    //         this.linksToVisit.push(url);
-    //     }
-    //     return;
-    // }
-
-    /**
-     * Updates the links that should be ignored when web crawling.
-     *
-     * @param urls - An array of urls
-     */
-    // private populateExcludeLinks(urls: string[]): void {
-    //     for (const url of urls) {
-    //         this.linksToIgnore.add(url);
-    //     }
-    //     return;
-    // }
-
-    /**
-     * Updates discovered links that should be visited when web crawling.
-     *
-     * @param links - A set of urls
-     */
-    // private addLinksToBeVisited(links: Set<string>): void {
-    //     // add discovered links to Denque
-    //     for (const link of links) {
-    //         this.linksToVisit.push(link);
-    //     }
-    //     return;
-    // }
-
-    /**
-     * Resets the objects that are used internally for tracking web crawling progress.
-     */
-    // private resetCrawlingTrackers(): void {
-    //     this.linksToVisit = new Denque<string>();
-    //     this.visitedLinks = new Set<string>();
-    //     return;
-    // }
-
-    /**
-     * Returns a boolean indicating whether the specified url should be crawled.
-     *
-     * @param url - An absolute url
-     * @returns A boolean
-     */
-    private isExcluded(url: string, linksToIgnore: Set<string>): boolean {
-        if (url.includes("nus.edu.sg")) {
+    private shouldCrawl(url: string): boolean {
+        if (!this.containsLinkPattern(url)) {
             return false;
-        } else {
-            return true;
         }
-        
-        for (const link of linksToIgnore) {
-            if (url.startsWith(link)) {
+        return true;
+    }
+
+    private containsLinkPattern(url: string): boolean {
+        for (const pattern of this.linkPatterns) {
+            if (url.includes(pattern)) {
                 return true;
             }
         }

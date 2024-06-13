@@ -1,2 +1,5 @@
+webpage-scraper/database/*
 webpage-scraper/dist/**/*
+webpage-scraper/jobs/**/*
 webpage-scraper/node_modules/**/*
+
