@@ -5,7 +5,8 @@ import UrlBuilder from '../utils/UrlBuilder';
 import WebpageDownloader from './WebpageDownloader';
 import { Cluster } from 'puppeteer-cluster';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import LinkTracker from './LinkTracker';
+import CrawlTracker from '../types/CrawlTracker';
+import JobDate from '../utils/JobDate';
 
 class Crawler {
     private savePath: string;
@@ -13,20 +14,26 @@ class Crawler {
 
     private discoveredLinks: Set<string>;
     private visitedLinks: Map<string, string>;
+    private excludedLinks: Set<string>; 
 
-    private tracker: LinkTracker;
+    private tracker: CrawlTracker;
+
+    // currently very hacky
+    private universityName: string;
 
     /**
      * Main constructor.
      */
-    public constructor(savePath: string, linkPatterns: string[], tracker: LinkTracker) {
+    public constructor(savePath: string, linkPatterns: string[], tracker: CrawlTracker, universityName: string) {
         this.savePath = savePath;
         this.linkPatterns = linkPatterns;
 
         this.discoveredLinks = new Set<string>();
         this.visitedLinks = new Map<string, string>();
-
+        this.excludedLinks = new Set<string>();
+        
         this.tracker = tracker;
+        this.universityName = universityName;
     }
 
     /**
@@ -41,9 +48,16 @@ class Crawler {
             return Promise.resolve();
         }
 
-        this.discoveredLinks = new Set<string>();
-        this.visitedLinks = new Map<string, string>();
+        try {
+            this.discoveredLinks = new Set<string>();
+            this.visitedLinks = new Map<string, string>();
 
+            const excludedUrls: string[] = await this.tracker.exclude.getExcludedLinks(this.universityName);
+            this.excludedLinks = new Set<string>(excludedUrls);
+        } catch (err) {
+            throw new Error(`Failed to initialize data structures for updating crawling status : ${err}`);
+        }
+        
         const cluster = await Cluster.launch({
             concurrency: Cluster.CONCURRENCY_CONTEXT,
             maxConcurrency: 5,
@@ -80,15 +94,21 @@ class Crawler {
     }
 
     private async markCrawledLinksAsVisited(): Promise<void> {
-        for (const [url, outcome] of this.visitedLinks.entries()) {
-            await this.tracker.markUrlAsVisited(url, outcome);
-        }
+        const date: string = JobDate.getCurrentDateString();
+        // convert map into an array of objects
+        const links: { url: string, outcome: string }[] = Array.from(this.visitedLinks, ([url, outcome]) => {
+            return { 
+                url: url,
+                outcome: outcome
+            };
+        });
+        await this.tracker.include.markUrlsAsVisited(links, date);
         return;
     }
 
     private async addNewLinks(): Promise<void> {
         const urls: string[] = Array.from(this.discoveredLinks.values());
-        await this.tracker.insertNewUrlsToVisit(urls);
+        await this.tracker.include.insertUrlsToVisit(urls);
         return;
     }
 
@@ -114,7 +134,7 @@ class Crawler {
             await WebpageDownloader.saveToFile(crawler.savePath, url, content);
             crawler.visitedLinks.set(url, "ok");
         } catch (error) {
-            console.error(`[ERROR] Failed to complete crawl due to: ${error}`);
+            console.error(`[ERROR] Failed to complete crawl for ${this.universityName} due to: ${error}`);
             crawler.visitedLinks.set(url, "error");
         }
         return;
@@ -184,12 +204,25 @@ class Crawler {
         if (!this.containsLinkPattern(url)) {
             return false;
         }
+
+        if (this.isBlacklisted(url)) {
+            return false;
+        }
         return true;
     }
 
     private containsLinkPattern(url: string): boolean {
         for (const pattern of this.linkPatterns) {
             if (url.includes(pattern)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private isBlacklisted(url: string): boolean {
+        for (const excludedUrl of this.excludedLinks) {
+            if (url.startsWith(excludedUrl)) {
                 return true;
             }
         }

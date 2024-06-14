@@ -54,7 +54,9 @@
             "linkMustContain": [
                 "ntu.edu.sg"
             ],
-            "exclude": []
+            "exclude": [
+                "test"
+            ]
         },
         {
             "name": "sit",

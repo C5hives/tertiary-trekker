@@ -1,10 +1,11 @@
 import CrawlJob from './lib/CrawlJob';
-import LinkTracker from './lib/LinkTracker';
+
+import ExcludedLinkManager from "./lib/ExcludeLinkManager";
 
 async function run() {
     try {
-        const job = new CrawlJob("test");
-        await job.run();
+        const job: CrawlJob = new CrawlJob("test");
+        job.crawl(1000);
     } catch (err) {
         console.log(err);
     }
