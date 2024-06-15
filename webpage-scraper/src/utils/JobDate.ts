@@ -1,11 +1,7 @@
 class JobDate {
-    public constructor() {
-        // empty
-    }
-
     /**
      * Used to standardise date expressions.
-     * 
+     *
      * @returns a formatted string representing the current date and time
      */
     public static getCurrentDateString(): string {

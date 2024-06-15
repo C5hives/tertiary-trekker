@@ -1,12 +1,12 @@
 import cheerio = require('cheerio');
-import { HTTPResponse, Page } from 'puppeteer'
+import { HTTPResponse, Page } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
-import UrlBuilder from '../utils/UrlBuilder';
-import WebpageDownloader from './WebpageDownloader';
+import UrlBuilder from '../../utils/UrlBuilder';
+import WebpageDownloader from '../../utils/WebpageDownloader';
 import { Cluster } from 'puppeteer-cluster';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import CrawlTracker from '../types/CrawlTracker';
-import JobDate from '../utils/JobDate';
+import CrawlTracker from '../../types/CrawlTracker';
+import JobDate from '../../utils/JobDate';
 
 class Crawler {
     private savePath: string;
@@ -14,7 +14,7 @@ class Crawler {
 
     private discoveredLinks: Set<string>;
     private visitedLinks: Map<string, string>;
-    private excludedLinks: Set<string>; 
+    private excludedLinks: Set<string>;
 
     private tracker: CrawlTracker;
 
@@ -31,7 +31,7 @@ class Crawler {
         this.discoveredLinks = new Set<string>();
         this.visitedLinks = new Map<string, string>();
         this.excludedLinks = new Set<string>();
-        
+
         this.tracker = tracker;
         this.universityName = universityName;
     }
@@ -57,11 +57,11 @@ class Crawler {
         } catch (err) {
             throw new Error(`Failed to initialize data structures for updating crawling status : ${err}`);
         }
-        
+
         const cluster = await Cluster.launch({
             concurrency: Cluster.CONCURRENCY_CONTEXT,
             maxConcurrency: 5,
-            puppeteerOptions: { headless: true},
+            puppeteerOptions: { headless: true },
             retryLimit: 2,
             sameDomainDelay: 1000,
             skipDuplicateUrls: true,
@@ -70,17 +70,17 @@ class Crawler {
             workerCreationDelay: 100,
             puppeteer: puppeteer.use(StealthPlugin())
         });
-    
+
         // set function that each worker will run
-        await cluster.task(this.crawlUrl); 
-        
+        await cluster.task(this.crawlUrl);
+
         for (const url of urls) {
             cluster.queue({
                 url: url,
                 crawler: this
             });
         }
-        
+
         await cluster.idle();
         await cluster.close();
 
@@ -96,8 +96,8 @@ class Crawler {
     private async markCrawledLinksAsVisited(): Promise<void> {
         const date: string = JobDate.getCurrentDateString();
         // convert map into an array of objects
-        const links: { url: string, outcome: string }[] = Array.from(this.visitedLinks, ([url, outcome]) => {
-            return { 
+        const links: { url: string; outcome: string }[] = Array.from(this.visitedLinks, ([url, outcome]) => {
+            return {
                 url: url,
                 outcome: outcome
             };
@@ -112,7 +112,7 @@ class Crawler {
         return;
     }
 
-    private async crawlUrl(jsObject: { page: Page, data: { url: string, crawler: Crawler }}): Promise<void> {
+    private async crawlUrl(jsObject: { page: Page; data: { url: string; crawler: Crawler } }): Promise<void> {
         const page = jsObject.page;
         const url = jsObject.data.url;
         const crawler = jsObject.data.crawler;
@@ -130,12 +130,12 @@ class Crawler {
                     crawler.discoveredLinks.add(cleanUrl);
                 }
             }
-            
+
             await WebpageDownloader.saveToFile(crawler.savePath, url, content);
-            crawler.visitedLinks.set(url, "ok");
+            crawler.visitedLinks.set(url, 'ok');
         } catch (error) {
             console.error(`[ERROR] Failed to complete crawl for ${this.universityName} due to: ${error}`);
-            crawler.visitedLinks.set(url, "error");
+            crawler.visitedLinks.set(url, 'error');
         }
         return;
     }
@@ -149,8 +149,8 @@ class Crawler {
      */
     private async getContentFromUrl(page: Page, url: string): Promise<string> {
         // Navigate the page to a URL
-        let response: HTTPResponse | null = await page.goto(url, { waitUntil: 'domcontentloaded' });
-        
+        const response: HTTPResponse | null = await page.goto(url, { waitUntil: 'domcontentloaded' });
+
         if (response == null) {
             return Promise.reject(`[ERROR] No response. Failed to fetch content from ${url}`);
         }

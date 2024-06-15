@@ -1,15 +1,16 @@
-import Crawler from './Crawler';
 import path from 'path';
-import jobConfig from '../../config/job-config.json';
-import JobConfig from '../types/JobConfig';
-import JobDate from '../utils/JobDate';
-import LinkOptions from '../types/LinkOptions';
-import UniversityConfig from '../types/UniversityConfig';
-import CrawlLinkManager from './CrawlLinkManager';
-import ExcludedLinkManager from './ExcludeLinkManager';
-import CrawlTracker from '../types/CrawlTracker';
 
-const linkOptions: LinkOptions = require(jobConfig.linkLocation);
+import JobOptions from '../../../config/job.config.json';
+import LinkOptions from '../../../config/link.config.json';
+import UniversityOptions from '../../types/options/UniversityOptions';
+
+import JobDate from '../../utils/JobDate';
+
+import Crawler from './Crawler';
+
+import CrawlLinkManager from '../databaseManagers/CrawlLinkManager';
+import ExcludedLinkManager from '../databaseManagers/ExcludeLinkManager';
+import CrawlTracker from '../../types/CrawlTracker';
 
 class CrawlJob {
     private rootDirectory: string;
@@ -17,7 +18,7 @@ class CrawlJob {
 
     private jobId: string;
 
-    private trackers: Map<UniversityConfig, CrawlTracker>;
+    private trackers: Map<UniversityOptions, CrawlTracker>;
 
     /**
      * Main constructor.
@@ -27,15 +28,15 @@ class CrawlJob {
     public constructor(jobId: string) {
         this.jobId = jobId;
 
-        this.rootDirectory = path.resolve(jobConfig.downloadRootDirectory);
-        this.databaseFilePath = path.join(path.resolve(jobConfig.databaseLocation), this.jobId);
+        this.rootDirectory = path.resolve(JobOptions.downloadRootDirectory);
+        this.databaseFilePath = path.join(path.resolve(JobOptions.databaseLocation), this.jobId + '.db');
 
         // could be a singleton, but is never referenced again with current implementation
         const excludedLinkManager = new ExcludedLinkManager(this.databaseFilePath, 'excluded');
 
         // initialise trackers for each university category
-        this.trackers = new Map<UniversityConfig, CrawlTracker>();
-        for (const university of linkOptions.universities) {
+        this.trackers = new Map<UniversityOptions, CrawlTracker>();
+        for (const university of LinkOptions.universities) {
             const crawlLinkManager: CrawlLinkManager = new CrawlLinkManager(this.databaseFilePath, university.name);
             this.trackers.set(university, {
                 include: crawlLinkManager,
@@ -52,7 +53,7 @@ class CrawlJob {
      *
      * @returns An void Promise
      */
-    public async run(): Promise<void> {        
+    public async run(): Promise<void> {
         await this.saveConfigsToDatabase();
         await this.crawl(1000);
         return;
@@ -66,7 +67,7 @@ class CrawlJob {
             const crawler: Crawler = new Crawler(savePath, linkPatterns, tracker, university.name);
 
             const urls: string[] = await tracker.include.getUnvisitedUrls(numberToCrawlPerCategory);
-            
+
             await crawler.scrapeAll(urls);
         }
     }
@@ -78,7 +79,7 @@ class CrawlJob {
     }
 
     private async saveUniversityConfigsToDatabase(): Promise<void> {
-        for (const university of linkOptions.universities) {
+        for (const university of LinkOptions.universities) {
             try {
                 const tracker: CrawlTracker = this.trackers.get(university)!;
                 await this.updateExclusions(tracker.exclude, university.exclude, university.name);
@@ -92,8 +93,8 @@ class CrawlJob {
 
     private async saveGlobalConfigsToDatabase(): Promise<void> {
         try {
-            const manager: ExcludedLinkManager = new ExcludedLinkManager(this.databaseFilePath, "excluded");
-            await this.updateExclusions(manager, linkOptions.globalExclude, 'global');
+            const manager: ExcludedLinkManager = new ExcludedLinkManager(this.databaseFilePath, 'excluded');
+            await this.updateExclusions(manager, LinkOptions.globalExclude, 'global');
         } catch (err) {
             console.log(`Global link config failed to update due to ${err}`);
         }
@@ -124,7 +125,7 @@ class CrawlJob {
      * @returns A folder name for a crawl job.
      */
     private static generateFolderName(): string {
-        return ['crawlJob', CrawlJob.getCurrentDateAsString()].join("_");
+        return ['crawlJob', CrawlJob.getCurrentDateAsString()].join('_');
     }
 
     /**
@@ -134,11 +135,8 @@ class CrawlJob {
      */
     private static getCurrentDateAsString(): string {
         const dateString: string = JobDate.getCurrentDateString();
-        
-        return dateString
-            .replace(new RegExp('[/:]', 'g'), '')
-            .replace(/,/g, '_')
-            .replace(/\s+/g, '');
+
+        return dateString.replace(new RegExp('[/:]', 'g'), '').replace(/,/g, '_').replace(/\s+/g, '');
     }
 }
 

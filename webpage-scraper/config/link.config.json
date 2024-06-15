@@ -2,13 +2,8 @@
     "universities": [
         {
             "name": "nus",
-            "include": [
-                "https://www.nus.edu.sg/",
-                "https://share.nus.edu.sg/"
-            ],
-            "linkMustContain": [
-                "nus.edu.sg"
-            ],
+            "include": ["https://www.nus.edu.sg/", "https://share.nus.edu.sg/"],
+            "linkMustContain": ["nus.edu.sg"],
             "exclude": [
                 "https://share.nus.edu.sg/",
                 "https://myportal.nus.edu.sg/",
@@ -48,55 +43,33 @@
         },
         {
             "name": "ntu",
-            "include": [
-                "https://www.ntu.edu.sg/"
-            ],
-            "linkMustContain": [
-                "ntu.edu.sg"
-            ],
-            "exclude": [
-                "test"
-            ]
+            "include": ["https://www.ntu.edu.sg/"],
+            "linkMustContain": ["ntu.edu.sg"],
+            "exclude": ["test"]
         },
         {
             "name": "sit",
-            "include": [
-                "https://www.singaporetech.edu.sg/"
-            ],
-            "linkMustContain": [
-                "singaporetech.edu.sg"
-            ],
+            "include": ["https://www.singaporetech.edu.sg/"],
+            "linkMustContain": ["singaporetech.edu.sg"],
             "exclude": []
         },
         {
             "name": "smu",
-            "include": [
-                "https://www.smu.edu.sg/"
-            ],
-            "linkMustContain": [
-                "smu.edu.sg"
-            ],
+            "include": ["https://www.smu.edu.sg/"],
+            "linkMustContain": ["smu.edu.sg"],
             "exclude": []
         },
         {
             "name": "suss",
-            "include": [
-                "https://www.suss.edu.sg/"
-            ],
-            "linkMustContain": [
-                "suss.edu.sg"
-            ],
+            "include": ["https://www.suss.edu.sg/"],
+            "linkMustContain": ["suss.edu.sg"],
             "exclude": []
         },
         {
             "name": "sutd",
-            "include": [
-                "https://www.sutd.edu.sg/"
-            ],
-            "linkMustContain": [
-                "sutd.edu.sg"
-            ],
-            "exclude": [] 
+            "include": ["https://www.sutd.edu.sg/"],
+            "linkMustContain": ["sutd.edu.sg"],
+            "exclude": []
         }
     ],
     "globalExclude": [
@@ -114,6 +87,3 @@
         "mailto:"
     ]
 }
-
-
-

@@ -1,3 +1,4 @@
+webpage-scraper/.vscode/*
 webpage-scraper/database/*
 webpage-scraper/dist/**/*
 webpage-scraper/jobs/**/*
