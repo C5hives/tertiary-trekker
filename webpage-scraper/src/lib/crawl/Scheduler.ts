@@ -25,16 +25,20 @@ class Scheduler {
         console.log(`[INFO] Scheduling job ${name} at ${JobDate.getCurrentDateString()}`);
         console.log(`[INFO] Attempts to crawl will be concurrent`);
 
-        while (true) {
+        while (!crawlJob.isComplete()) {
             try {
                 numberOfIterations += 1;
                 console.log(`[INFO] Iteration #${numberOfIterations} of ${name} at ${JobDate.getCurrentDateString()}`);
-                await Scheduler.crawlOnce(crawlJob, name)
+                await Scheduler.crawlOnce(crawlJob)
                 console.log(`[INFO] Iteration #${numberOfIterations} of job ${name} concluded at ${JobDate.getCurrentDateString()}`);
             } catch (err) {
                 console.log(`[ERROR] ${err}`);
             }
         }
+
+        console.log(`[INFO] Crawl job ${name} is complete. Marking as complete...`);
+        await Scheduler.manager.markJobAsComplete(name);
+        process.exit(0);
     }
 
     public static async runPeriodically(): Promise<void> {
@@ -49,7 +53,8 @@ class Scheduler {
             () => {
                 numberOfIterations += 1;
                 console.log(`[INFO] Iteration #${numberOfIterations} of ${name} at ${JobDate.getCurrentDateString()}`);
-                Scheduler.crawlOnce(crawlJob, name)
+                
+                Scheduler.crawlOnceCron(crawlJob, name)
                     .then(() => {
                         console.log(`[INFO] Iteration #${numberOfIterations} of job ${name} concluded at ${JobDate.getCurrentDateString()}`);
                     })
@@ -64,16 +69,22 @@ class Scheduler {
         cronJob.start();
     }
 
-    private static async crawlOnce(crawlJob: CrawlJob, jobName: string): Promise<void> {
+    private static async crawlOnce(crawlJob: CrawlJob): Promise<void> {
         const start = performance.now();
+        await crawlJob.run();
+        const end = performance.now();
 
+        console.log(`[INFO] Time Taken: ${end - start}ms`);
+        return;
+    }
+
+    private static async crawlOnceCron(crawlJob: CrawlJob, name: string): Promise<void> {
         if (await crawlJob.isComplete()) {
-            console.log(`[INFO] Crawl job ${jobName} is complete. Marking as complete...`);
-            await Scheduler.manager.markJobAsComplete(jobName);
+            console.log(`[INFO] Crawl job ${name} is complete. Marking as complete...`);
             process.exit(0);
         }
+        const start = performance.now();
         await crawlJob.run();
-
         const end = performance.now();
         console.log(`[INFO] Time Taken: ${end - start}ms`);
         return;

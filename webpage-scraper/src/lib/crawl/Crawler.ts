@@ -65,36 +65,33 @@ class Crawler {
             throw new Error(`Failed to initialize data structures to track crawling status : ${err}`);
         }    
         
-        try {
-            if (!Crawler.cluster) {
-                Crawler.cluster = await Cluster.launch({
-                    concurrency: Cluster.CONCURRENCY_CONTEXT,
-                    maxConcurrency: 5,
-                    puppeteerOptions: { headless: true },
-                    retryLimit: 2,
-                    sameDomainDelay: 1000,
-                    skipDuplicateUrls: true,
-                    timeout: 30000,
-                    monitor: false,
-                    workerCreationDelay: 100,
-                    puppeteer: puppeteer.use(StealthPlugin())
-                });
-            }
-            
-            // set function that each worker will run
-            await Crawler.cluster.task(this.crawlUrl);
-            for (const url of urls) {
-                Crawler.cluster.queue({
-                    url: url,
-                    crawler: this
-                });
-            }
-
-            await Crawler.cluster.idle();
-            // await Crawler.cluster.close();
-        } catch (err) {
-            console.log(`[ERROR] Something went wrong with the clusters: ${err}`);
+        if (!Crawler.cluster) {
+            Crawler.cluster = await Cluster.launch({
+                concurrency: Cluster.CONCURRENCY_CONTEXT,
+                maxConcurrency: 5,
+                puppeteerOptions: { headless: true },
+                retryLimit: 2,
+                sameDomainDelay: 1000,
+                skipDuplicateUrls: true,
+                timeout: 30000,
+                monitor: false,
+                workerCreationDelay: 100,
+                puppeteer: puppeteer.use(StealthPlugin())
+            });
         }
+        
+        // set function that each worker will run
+        await Crawler.cluster.task(this.crawlUrl);
+
+        for (const url of urls) {
+            Crawler.cluster.queue({
+                url: url,
+                crawler: this
+            });
+        }
+
+        await Crawler.cluster.idle();
+        await Crawler.cluster.close();
         
         try {
             await this.markCrawledLinksAsVisited();
@@ -146,7 +143,7 @@ class Crawler {
             await WebpageDownloader.saveToFile(crawler.savePath, url, content);
             crawler.visitedLinks.set(url, 'ok');
         } catch (error) {
-            console.error(`[ERROR] Failed to complete crawl for ${this.universityName} due to: ${error}`);
+            console.log(`[ERROR] Failed to complete crawl for ${url} due to: ${error}`);
             crawler.visitedLinks.set(url, 'error');
         }
         return;
