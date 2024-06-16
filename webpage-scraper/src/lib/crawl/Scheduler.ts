@@ -17,7 +17,27 @@ class Scheduler {
     private static dbFilePath: string = path.join(path.resolve(JobConfig.databaseLocation), 'crawl_jobs.db');
     private static manager: JobManager = new JobManager(Scheduler.dbFilePath, 'jobs');
 
-    public static async run(): Promise<void> {
+    public static async runContinuously(): Promise<void> {
+        const { crawlJob, name } = await Scheduler.getCrawlJobAndName();
+
+        let numberOfIterations: number = 0;
+
+        console.log(`[INFO] Scheduling job ${name} at ${JobDate.getCurrentDateString()}`);
+        console.log(`[INFO] Attempts to crawl will be concurrent`);
+
+        while (true) {
+            try {
+                numberOfIterations += 1;
+                console.log(`[INFO] Iteration #${numberOfIterations} of ${name} at ${JobDate.getCurrentDateString()}`);
+                await Scheduler.crawlOnce(crawlJob, name)
+                console.log(`[INFO] Iteration #${numberOfIterations} of job ${name} concluded at ${JobDate.getCurrentDateString()}`);
+            } catch (err) {
+                console.log(`[ERROR] ${err}`);
+            }
+        }
+    }
+
+    public static async runPeriodically(): Promise<void> {
         const { crawlJob, name } = await Scheduler.getCrawlJobAndName();
 
         let numberOfIterations: number = 0;
@@ -45,12 +65,17 @@ class Scheduler {
     }
 
     private static async crawlOnce(crawlJob: CrawlJob, jobName: string): Promise<void> {
+        const start = performance.now();
+
         if (await crawlJob.isComplete()) {
             console.log(`[INFO] Crawl job ${jobName} is complete. Marking as complete...`);
             await Scheduler.manager.markJobAsComplete(jobName);
             process.exit(0);
         }
         await crawlJob.run();
+
+        const end = performance.now();
+        console.log(`[INFO] Time Taken: ${end - start}ms`);
         return;
     }
 

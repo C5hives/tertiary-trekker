@@ -14,6 +14,8 @@ import WebpageDownloader from '../../utils/WebpageDownloader';
 import CrawlTracker from '../../types/CrawlTracker';
 
 class Crawler {
+    private static cluster: Cluster;
+
     private savePath: string;
     private linkPatterns: string[];
 
@@ -61,39 +63,39 @@ class Crawler {
             this.excludedLinks = new Set<string>(excludedUrls);
         } catch (err) {
             throw new Error(`Failed to initialize data structures to track crawling status : ${err}`);
-        }
-
-        const cluster = await Cluster.launch({
-            concurrency: Cluster.CONCURRENCY_CONTEXT,
-            maxConcurrency: 5,
-            puppeteerOptions: { headless: true },
-            retryLimit: 2,
-            sameDomainDelay: 1000,
-            skipDuplicateUrls: true,
-            timeout: 30000,
-            monitor: false,
-            workerCreationDelay: 100,
-            puppeteer: puppeteer.use(StealthPlugin())
-        });
-
-        // set function that each worker will run
-        await cluster.task(this.crawlUrl);
-
-        for (const url of urls) {
-            cluster.queue({
-                url: url,
-                crawler: this
-            });
-        }
-
-        await cluster.idle();
+        }    
+        
         try {
-            await cluster.close();
+            if (!Crawler.cluster) {
+                Crawler.cluster = await Cluster.launch({
+                    concurrency: Cluster.CONCURRENCY_CONTEXT,
+                    maxConcurrency: 5,
+                    puppeteerOptions: { headless: true },
+                    retryLimit: 2,
+                    sameDomainDelay: 1000,
+                    skipDuplicateUrls: true,
+                    timeout: 30000,
+                    monitor: false,
+                    workerCreationDelay: 100,
+                    puppeteer: puppeteer.use(StealthPlugin())
+                });
+            }
+            
+            // set function that each worker will run
+            await Crawler.cluster.task(this.crawlUrl);
+            for (const url of urls) {
+                Crawler.cluster.queue({
+                    url: url,
+                    crawler: this
+                });
+            }
+
+            await Crawler.cluster.idle();
+            // await Crawler.cluster.close();
         } catch (err) {
-            console.log(`[ERROR] Failed to close cluster: ${err}`);
+            console.log(`[ERROR] Something went wrong with the clusters: ${err}`);
         }
         
-
         try {
             await this.markCrawledLinksAsVisited();
             await this.addNewLinks();
