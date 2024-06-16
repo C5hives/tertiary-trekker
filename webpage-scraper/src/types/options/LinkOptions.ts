@@ -1,3 +1,4 @@
+//config files
 import UniversityOptions from './UniversityOptions';
 
 type LinkOptions = {

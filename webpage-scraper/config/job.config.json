@@ -1,4 +1,5 @@
 {
     "databaseLocation": "./database/",
-    "downloadRootDirectory": "./jobs/"
+    "downloadRootDirectory": "./jobs/",
+    "batchSizePerCategory": 50
 }

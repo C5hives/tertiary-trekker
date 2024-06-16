@@ -1,5 +1,8 @@
-import UrlToExclude from '../../types/sql/UrlToExclude';
+// npm packages
 import sqlite3, { Database } from 'sqlite3';
+
+// typescript types
+import UrlToExclude from '../../types/sql/UrlToExclude';
 
 class ExcludeLinkManager {
     private db: Database;

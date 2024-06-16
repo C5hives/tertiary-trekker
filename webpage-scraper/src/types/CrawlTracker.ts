@@ -1,3 +1,4 @@
+// custom classes
 import CrawlLinkManager from '../lib/databaseManagers/CrawlLinkManager';
 import ExcludeLinkManager from '../lib/databaseManagers/ExcludeLinkManager';
 

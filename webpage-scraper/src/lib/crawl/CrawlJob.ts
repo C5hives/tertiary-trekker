@@ -1,15 +1,18 @@
+// npm packages
 import path from 'path';
 
-import JobOptions from '../../../config/job.config.json';
-import LinkOptions from '../../../config/link.config.json';
-import UniversityOptions from '../../types/options/UniversityOptions';
-
-import JobDate from '../../utils/JobDate';
-
+// custom classes
 import Crawler from './Crawler';
-
+import JobDate from '../../utils/JobDate';
 import CrawlLinkManager from '../databaseManagers/CrawlLinkManager';
 import ExcludedLinkManager from '../databaseManagers/ExcludeLinkManager';
+
+// config files
+import JobOptions from '../../../config/job.config.json';
+import LinkOptions from '../../../config/link.config.json';
+
+// typescript types
+import UniversityOptions from '../../types/options/UniversityOptions';
 import CrawlTracker from '../../types/CrawlTracker';
 
 class CrawlJob {
@@ -54,21 +57,35 @@ class CrawlJob {
      * @returns An void Promise
      */
     public async run(): Promise<void> {
-        await this.saveConfigsToDatabase();
-        await this.crawl(1000);
+        console.log(`[INFO] Crawling ${JobOptions.batchSizePerCategory} sites per university`);
+        await this.crawl(JobOptions.batchSizePerCategory);
         return;
     }
 
-    public async crawl(numberToCrawlPerCategory: number): Promise<void> {
+    public async isComplete(): Promise<boolean> {
+        for (const tracker of this.trackers.values()) {
+            if (await tracker.include.hasUnvisitedUrls()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private async crawl(numberToCrawlPerCategory: number): Promise<void> {
         for (const [university, tracker] of this.trackers.entries()) {
-            const savePath: string = path.join(this.rootDirectory, this.jobId, university.name);
+            try {
+                const savePath: string = path.join(this.rootDirectory, this.jobId, university.name);
 
-            const linkPatterns: string[] = university.linkMustContain;
-            const crawler: Crawler = new Crawler(savePath, linkPatterns, tracker, university.name);
+                const linkPatterns: string[] = university.linkMustContain;
+                const crawler: Crawler = new Crawler(savePath, linkPatterns, tracker, university.name);
 
-            const urls: string[] = await tracker.include.getUnvisitedUrls(numberToCrawlPerCategory);
+                const urls: string[] = await tracker.include.getUnvisitedUrls(numberToCrawlPerCategory);
 
-            await crawler.scrapeAll(urls);
+                await crawler.scrapeAll(urls);
+            } catch (err) {
+                console.log(`[ERROR] Crawl attempt failed for ${university.name}`);
+            }
+            
         }
     }
 
@@ -124,7 +141,7 @@ class CrawlJob {
      *
      * @returns A folder name for a crawl job.
      */
-    private static generateFolderName(): string {
+    public static generateFolderName(): string {
         return ['crawlJob', CrawlJob.getCurrentDateAsString()].join('_');
     }
 

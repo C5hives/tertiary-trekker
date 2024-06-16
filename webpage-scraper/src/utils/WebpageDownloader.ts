@@ -10,7 +10,6 @@ class WebpageDownloader {
      * @param content - The contents of a html file
      */
     public static async saveToFile(savePath: string, url: string, content: string): Promise<void> {
-        // TODO: should probably throw the error instead of catching here
         try {
             const filePath = WebpageDownloader.determineFilePath(url, savePath);
 
@@ -19,11 +18,10 @@ class WebpageDownloader {
 
             // save parsed content to a html file
             await fs.promises.writeFile(filePath, content, 'utf-8');
-
-            // console.log(`[INFO] File saved as: ${filePath}`);
-        } catch (error) {
-            console.error(error);
+        } catch (err) {
+            throw new Error(`Failed to save file for ${url}: ${err}`);
         }
+        
         return;
     }
 

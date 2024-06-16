@@ -1,10 +1,14 @@
-import Job from '../../types/sql/Job';
-import JobDate from '../../utils/JobDate';
+// npm packages
 import sqlite3, { Database } from 'sqlite3';
+
+// custom classes
+import JobDate from '../../utils/JobDate';
+
+// typescript types
+import Job from '../../types/sql/Job';
 
 class JobManager {
     private db: Database;
-    //private controller: DatabaseController;
     private tableName: string = 'jobs';
 
     public constructor(dbFilePath: string, tableName: string) {

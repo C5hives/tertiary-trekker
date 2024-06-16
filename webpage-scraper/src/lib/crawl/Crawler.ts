@@ -1,12 +1,17 @@
-import cheerio = require('cheerio');
+// npm packages
+import * as cheerio from 'cheerio';
 import { HTTPResponse, Page } from 'puppeteer';
+import { Cluster } from 'puppeteer-cluster';
 import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
+// custom classes
+import JobDate from '../../utils/JobDate';
 import UrlBuilder from '../../utils/UrlBuilder';
 import WebpageDownloader from '../../utils/WebpageDownloader';
-import { Cluster } from 'puppeteer-cluster';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
+// typescript types
 import CrawlTracker from '../../types/CrawlTracker';
-import JobDate from '../../utils/JobDate';
 
 class Crawler {
     private savePath: string;
@@ -55,7 +60,7 @@ class Crawler {
             const excludedUrls: string[] = await this.tracker.exclude.getExcludedLinks(this.universityName);
             this.excludedLinks = new Set<string>(excludedUrls);
         } catch (err) {
-            throw new Error(`Failed to initialize data structures for updating crawling status : ${err}`);
+            throw new Error(`Failed to initialize data structures to track crawling status : ${err}`);
         }
 
         const cluster = await Cluster.launch({
@@ -82,13 +87,18 @@ class Crawler {
         }
 
         await cluster.idle();
-        await cluster.close();
+        try {
+            await cluster.close();
+        } catch (err) {
+            console.log(`[ERROR] Failed to close cluster: ${err}`);
+        }
+        
 
         try {
             await this.markCrawledLinksAsVisited();
             await this.addNewLinks();
         } catch (err) {
-            console.log(`Failed to update crawl results into database due to: ${err}`);
+            throw new Error(`Failed to update crawl results into database due to: ${err}`);
         }
         return;
     }

@@ -1,5 +1,8 @@
-import UrlToCrawl from '../../types/sql/UrlToCrawl';
+// npm packages
 import sqlite3, { Database } from 'sqlite3';
+
+// typescript types
+import UrlToCrawl from '../../types/sql/UrlToCrawl';
 
 class CrawlLinkManager {
     private db: Database;
@@ -76,6 +79,10 @@ class CrawlLinkManager {
         return lastAffectedRow;
     }
 
+    public async hasUnvisitedUrls(): Promise<boolean> {
+        return (await this.getAllUnvisitedUrls()).length > 1;
+    }
+
     public async getUnvisitedUrls(limit: number): Promise<string[]> {
         if (limit < 1) {
             return Promise.reject('Invalid limit provided');
@@ -99,7 +106,7 @@ class CrawlLinkManager {
         return result.map((urlToCrawl) => urlToCrawl.url);
     }
 
-    public async getAllUnvisitedUrls(): Promise<string[]> {
+    private async getAllUnvisitedUrls(): Promise<string[]> {
         await this.ensureTableExists();
 
         const result: UrlToCrawl[] = await new Promise((resolve, reject) => {
