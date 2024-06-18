@@ -8,16 +8,12 @@ class UrlUtils {
      * @returns A cleaned url
      */
     public static cleanUrl(url: string, base: string): string {
-        if (url.includes('javascript')) {
-            throw new Error(`${url} is a script`);
-        }
-
         if (!URL.canParse(url)) {
             // attempt to build an absolute url
             url = UrlUtils.buildFullUrl(url, base);
         }
 
-        let urlObj: URL = new URL(url);
+        const urlObj: URL = new URL(url);
 
         urlObj.protocol = 'https'; // convert all links to https
         urlObj.hash = ''; // remove anchors from url

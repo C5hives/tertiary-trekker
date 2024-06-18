@@ -17,7 +17,15 @@ class Scheduler {
     private static dbFilePath: string = path.join(path.resolve(JobConfig.databaseLocation), 'crawl_jobs.db');
     private static manager: JobManager = new JobManager(Scheduler.dbFilePath, 'jobs');
 
-    public static async runContinuously(): Promise<void> {
+    public static async run(): Promise<void> {
+        if (JobConfig.crawlPeriodically) {
+            await this.runPeriodically();
+        } else {
+            await this.runContinuously();
+        }
+    }
+
+    private static async runContinuously(): Promise<void> {
         const { crawlJob, name } = await Scheduler.getCrawlJobAndName();
 
         let numberOfIterations: number = 0;
@@ -28,7 +36,7 @@ class Scheduler {
         while (!(await crawlJob.isComplete())) {
             try {
                 numberOfIterations += 1;
-                console.log(`[INFO] Iteration #${numberOfIterations} of ${name} at ${JobDate.getCurrentDateString()}`);
+                console.log(`[INFO] Iteration #${numberOfIterations} of ${name} started at ${JobDate.getCurrentDateString()}`);
                 await Scheduler.crawlOnce(crawlJob);
                 console.log(`[INFO] Iteration #${numberOfIterations} of job ${name} concluded at ${JobDate.getCurrentDateString()}`);
             } catch (err) {
@@ -40,18 +48,18 @@ class Scheduler {
         process.exit(0);
     }
 
-    public static async runPeriodically(): Promise<void> {
+    private static async runPeriodically(): Promise<void> {
         const { crawlJob, name } = await Scheduler.getCrawlJobAndName();
 
         let numberOfIterations: number = 0;
 
         console.log(`[INFO] Scheduling job ${name} at ${JobDate.getCurrentDateString()}`);
-        console.log(`[INFO] Attempts to crawl will be made every 5 minutes`);
+        console.log(`[INFO] Attempts to crawl will be made every ${JobConfig.crawlFrequencyInMinutes} minutes`);
         const cronJob = new CronJob(
-            '*/10 * * * *', // cronTime,
+            `*/${JobConfig.crawlFrequencyInMinutes} * * * *`, // cronTime,
             () => {
                 numberOfIterations += 1;
-                console.log(`[INFO] Iteration #${numberOfIterations} of ${name} at ${JobDate.getCurrentDateString()}`);
+                console.log(`[INFO] Iteration #${numberOfIterations} of ${name} started at ${JobDate.getCurrentDateString()}`);
 
                 Scheduler.crawlOnceCron(crawlJob, name)
                     .then(() => {

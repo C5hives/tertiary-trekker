@@ -58,10 +58,7 @@
             "name": "smu",
             "include": ["https://www.smu.edu.sg/"],
             "linkMustContain": ["smu.edu.sg"],
-            "exclude": [
-                "https://alumnieservices.smu.edu.sg/",
-                "https://ugmarketing.smu.edu.sg/"
-            ]
+            "exclude": ["https://alumnieservices.smu.edu.sg/", "https://ugmarketing.smu.edu.sg/"]
         },
         {
             "name": "suss",

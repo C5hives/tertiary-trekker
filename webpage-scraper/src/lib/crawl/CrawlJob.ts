@@ -57,8 +57,8 @@ class CrawlJob {
      * @returns An void Promise
      */
     public async run(): Promise<void> {
-        console.log(`[INFO] Crawling ${JobOptions.batchSizePerCategory} sites per university`);
-        await this.crawl(JobOptions.batchSizePerCategory);
+        console.log(`[INFO] Crawling ${JobOptions.batchSizePerCrawl} sites per university`);
+        await this.crawl(JobOptions.batchSizePerCrawl);
         return;
     }
 
@@ -71,18 +71,17 @@ class CrawlJob {
         return true;
     }
 
-    private async crawl(numberToCrawlPerCategory: number): Promise<void> {
+    private async crawl(batchSize: number): Promise<void> {
+        const batchSizePerCategory: number = Math.floor(batchSize / this.trackers.size);
+
         for (const [university, tracker] of this.trackers.entries()) {
-            if (university.name === 'sutd') {
-                continue;
-            }
             try {
                 const savePath: string = path.join(this.rootDirectory, this.jobId, university.name);
 
                 const linkPatterns: string[] = university.linkMustContain;
                 const crawler: Crawler = new Crawler(savePath, linkPatterns, tracker, university.name);
 
-                const urls: string[] = await tracker.include.getUnvisitedUrls(numberToCrawlPerCategory);
+                const urls: string[] = await tracker.include.getUnvisitedUrls(batchSizePerCategory);
 
                 await crawler.scrapeAll(urls);
             } catch (err) {

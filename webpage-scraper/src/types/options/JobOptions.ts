@@ -2,7 +2,9 @@ type JobOptions = {
     linkLocation: string;
     databaseLocation: string;
     downloadRootDirectory: string;
-    batchSizePerCategory: number;
+    batchSizePerCrawl: number;
+    crawlPeriodically: boolean;
+    crawlFrequencyInMinutes: number;
 };
 
 export default JobOptions;

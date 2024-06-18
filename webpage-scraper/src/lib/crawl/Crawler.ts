@@ -168,7 +168,7 @@ class Crawler {
     }
 
     private removeUnneededTags(content: string): string {
-        let $ = cheerio.load(content);
+        const $ = cheerio.load(content);
         $('script').remove(); // remove <script> tags
         $('noscript').remove(); // remove <noscript> tags
         $('link').remove(); // remove <link> tags
@@ -210,6 +210,9 @@ class Crawler {
         for (const url of rawUrls) {
             try {
                 // convert url into a standardised format
+                if (url.includes('javascript')) {
+                    continue;
+                }
                 const cleanedUrl = UrlUtils.cleanUrl(url, baseUrl);
                 cleanedUrls.add(cleanedUrl);
             } catch (err) {
@@ -230,7 +233,7 @@ class Crawler {
 
         if (UrlUtils.isMimeType(url) && !UrlUtils.isHtml(url)) {
             // url is some kind of file extension that isn't .html
-            return false; 
+            return false;
         }
 
         return true;
