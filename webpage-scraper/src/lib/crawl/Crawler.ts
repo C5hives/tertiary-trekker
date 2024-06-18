@@ -7,7 +7,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 // custom classes
 import JobDate from '../../utils/JobDate';
-import UrlBuilder from '../../utils/UrlBuilder';
+import UrlUtils from '../../utils/UrlUtils';
 import WebpageDownloader from '../../utils/WebpageDownloader';
 
 // typescript types
@@ -63,8 +63,8 @@ class Crawler {
             this.excludedLinks = new Set<string>(excludedUrls);
         } catch (err) {
             throw new Error(`Failed to initialize data structures to track crawling status : ${err}`);
-        }    
-        
+        }
+
         if (!Crawler.cluster) {
             Crawler.cluster = await Cluster.launch({
                 concurrency: Cluster.CONCURRENCY_CONTEXT,
@@ -79,7 +79,7 @@ class Crawler {
                 puppeteer: puppeteer.use(StealthPlugin())
             });
         }
-        
+
         // set function that each worker will run
         await Crawler.cluster.task(this.crawlUrl);
 
@@ -92,7 +92,7 @@ class Crawler {
 
         await Crawler.cluster.idle();
         await Crawler.cluster.close();
-        
+
         try {
             await this.markCrawledLinksAsVisited();
             await this.addNewLinks();
@@ -129,7 +129,8 @@ class Crawler {
         page.setDefaultNavigationTimeout(10000);
 
         try {
-            const content: string = await crawler.getContentFromUrl(page, url);
+            let content: string = await crawler.getContentFromUrl(page, url);
+            content = crawler.removeUnneededTags(content);
 
             const newLinks: string[] = crawler.discoverUniqueLinks(content);
             const cleanUrls: string[] = crawler.buildAndCleanUrls(newLinks, url);
@@ -143,8 +144,8 @@ class Crawler {
             await WebpageDownloader.saveToFile(crawler.savePath, url, content);
             crawler.visitedLinks.set(url, 'ok');
         } catch (error) {
-            console.log(`[ERROR] Failed to complete crawl for ${url} due to: ${error}`);
-            crawler.visitedLinks.set(url, 'error');
+            console.log(`[ERROR] Failed to complete crawl due to: ${error}`);
+            crawler.visitedLinks.set(url, 'error - ' + error);
         }
         return;
     }
@@ -161,9 +162,19 @@ class Crawler {
         const response: HTTPResponse | null = await page.goto(url, { waitUntil: 'domcontentloaded' });
 
         if (response == null) {
-            return Promise.reject(`[ERROR] No response. Failed to fetch content from ${url}`);
+            return Promise.reject(`No response. Failed to fetch content from ${url}`);
         }
         return await page.content();
+    }
+
+    private removeUnneededTags(content: string): string {
+        let $ = cheerio.load(content);
+        $('script').remove(); // remove <script> tags
+        $('noscript').remove(); // remove <noscript> tags
+        $('link').remove(); // remove <link> tags
+        $('style').remove(); // remove <style> tags
+
+        return $.html();
     }
 
     /**
@@ -197,14 +208,13 @@ class Crawler {
     private buildAndCleanUrls(rawUrls: string[], baseUrl: string): string[] {
         const cleanedUrls: Set<string> = new Set<string>();
         for (const url of rawUrls) {
-            // parsed url in html may be a relative link, need to get full url if so
-            const fullUrl = UrlBuilder.buildFullUrl(url, baseUrl);
-            // remove additional parameters at the end of the url
-            const cleanedUrl = UrlBuilder.cleanUrl(fullUrl);
-            if (cleanedUrl === '') {
-                continue;
+            try {
+                // convert url into a standardised format
+                const cleanedUrl = UrlUtils.cleanUrl(url, baseUrl);
+                cleanedUrls.add(cleanedUrl);
+            } catch (err) {
+                console.log(`Cleaning url failed due to: ${err}`);
             }
-            cleanedUrls.add(cleanedUrl);
         }
         return Array.from(cleanedUrls.values());
     }
@@ -217,6 +227,12 @@ class Crawler {
         if (this.isBlacklisted(url)) {
             return false;
         }
+
+        if (UrlUtils.isMimeType(url) && !UrlUtils.isHtml(url)) {
+            // url is some kind of file extension that isn't .html
+            return false; 
+        }
+
         return true;
     }
 

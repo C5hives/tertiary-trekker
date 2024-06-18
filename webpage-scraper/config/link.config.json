@@ -36,6 +36,7 @@
                 "https://staffportal.nus.edu.sg",
                 "https://www.nus.edu.sg/alumnet",
                 "https://www.nus.edu.sg/thought-leadership",
+                "https://nus.edu.sg/thought-leadership",
                 "https://luminus.nus.edu.sg",
                 "https://libportal.nus.edu.sg",
                 "https://www.nus.edu.sg/research"
@@ -57,14 +58,16 @@
             "name": "smu",
             "include": ["https://www.smu.edu.sg/"],
             "linkMustContain": ["smu.edu.sg"],
-            "exclude": ["https://alumnieservices.smu.edu.sg/"]
+            "exclude": [
+                "https://alumnieservices.smu.edu.sg/",
+                "https://ugmarketing.smu.edu.sg/"
+            ]
         },
         {
             "name": "suss",
             "include": ["https://www.suss.edu.sg/"],
             "linkMustContain": ["suss.edu.sg"],
-            "exclude": ["https://suss.edu.sg/owa-oi",
-        "https://tlc.suss.edu.sg/"]
+            "exclude": ["https://suss.edu.sg/owa-oi", "https://tlc.suss.edu.sg/"]
         },
         {
             "name": "sutd",

@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import UrlUtils from './UrlUtils';
 
 class WebpageDownloader {
     /**
@@ -11,17 +12,18 @@ class WebpageDownloader {
      */
     public static async saveToFile(savePath: string, url: string, content: string): Promise<void> {
         try {
-            const filePath = WebpageDownloader.determineFilePath(url, savePath);
+            const filePath = WebpageDownloader.determineFilePath(savePath, url);
+            console.log(filePath);
 
             // creates a destination folder to save the html file to
-            await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+            // await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
 
             // save parsed content to a html file
-            await fs.promises.writeFile(filePath, content, 'utf-8');
+            // await fs.promises.writeFile(filePath, content, 'utf-8');
         } catch (err) {
             throw new Error(`Failed to save file for ${url}: ${err}`);
         }
-        
+
         return;
     }
 
@@ -35,11 +37,11 @@ class WebpageDownloader {
      * @param savePath - The folder path to save the file to
      * @returns An absolute file path
      */
-    private static determineFilePath(url: string, savePath: string): string {
-        const urlObject = new URL(url);
+    private static determineFilePath(savePath: string, url: string): string {
+        const urlObject: URL = new URL(url);
 
         // remove trailing slash in path name if any
-        let pathName = urlObject.pathname;
+        let pathName: string = urlObject.pathname;
         if (pathName.charAt(pathName.length - 1) === '/') {
             pathName = pathName.slice(0, pathName.length - 1);
         }
@@ -48,6 +50,8 @@ class WebpageDownloader {
         let relativePath = '';
         if (pathName === '') {
             relativePath = 'index.html';
+        } else if (UrlUtils.isHtml(pathName)) {
+            relativePath = pathName;
         } else {
             relativePath = `${pathName}\\index.html`;
         }

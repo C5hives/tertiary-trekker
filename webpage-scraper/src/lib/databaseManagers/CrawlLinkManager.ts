@@ -80,7 +80,8 @@ class CrawlLinkManager {
     }
 
     public async hasUnvisitedUrls(): Promise<boolean> {
-        return (await this.getAllUnvisitedUrls()).length > 1;
+        const unvisitedUrls = await this.getAllUnvisitedUrls();
+        return unvisitedUrls.length > 0;
     }
 
     public async getUnvisitedUrls(limit: number): Promise<string[]> {

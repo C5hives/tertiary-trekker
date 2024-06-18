@@ -73,6 +73,9 @@ class CrawlJob {
 
     private async crawl(numberToCrawlPerCategory: number): Promise<void> {
         for (const [university, tracker] of this.trackers.entries()) {
+            if (university.name === 'sutd') {
+                continue;
+            }
             try {
                 const savePath: string = path.join(this.rootDirectory, this.jobId, university.name);
 
@@ -83,9 +86,8 @@ class CrawlJob {
 
                 await crawler.scrapeAll(urls);
             } catch (err) {
-                console.log(`[ERROR] Crawl attempt failed for ${university.name}`);
+                console.log(`Crawl attempt failed for ${university.name}`);
             }
-            
         }
     }
 

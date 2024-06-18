@@ -1,17 +1,17 @@
 // npm packages
-import { CronJob } from "cron";
-import path from "path";
+import { CronJob } from 'cron';
+import path from 'path';
 
 // custom classes
-import CrawlJob from "./CrawlJob";
-import JobManager from "../databaseManagers/JobManager";
-import JobDate from "../../utils/JobDate";
+import CrawlJob from './CrawlJob';
+import JobManager from '../databaseManagers/JobManager';
+import JobDate from '../../utils/JobDate';
 
 // config files
-import JobConfig from "../../../config/job.config.json";
+import JobConfig from '../../../config/job.config.json';
 
 // typescript types
-import Job from "../../types/sql/Job";
+import Job from '../../types/sql/Job';
 
 class Scheduler {
     private static dbFilePath: string = path.join(path.resolve(JobConfig.databaseLocation), 'crawl_jobs.db');
@@ -25,17 +25,16 @@ class Scheduler {
         console.log(`[INFO] Scheduling job ${name} at ${JobDate.getCurrentDateString()}`);
         console.log(`[INFO] Attempts to crawl will be concurrent`);
 
-        while (!crawlJob.isComplete()) {
+        while (!(await crawlJob.isComplete())) {
             try {
                 numberOfIterations += 1;
                 console.log(`[INFO] Iteration #${numberOfIterations} of ${name} at ${JobDate.getCurrentDateString()}`);
-                await Scheduler.crawlOnce(crawlJob)
+                await Scheduler.crawlOnce(crawlJob);
                 console.log(`[INFO] Iteration #${numberOfIterations} of job ${name} concluded at ${JobDate.getCurrentDateString()}`);
             } catch (err) {
                 console.log(`[ERROR] ${err}`);
             }
         }
-
         console.log(`[INFO] Crawl job ${name} is complete. Marking as complete...`);
         await Scheduler.manager.markJobAsComplete(name);
         process.exit(0);
@@ -49,16 +48,16 @@ class Scheduler {
         console.log(`[INFO] Scheduling job ${name} at ${JobDate.getCurrentDateString()}`);
         console.log(`[INFO] Attempts to crawl will be made every 5 minutes`);
         const cronJob = new CronJob(
-            '*/5 * * * *', // cronTime,
+            '*/10 * * * *', // cronTime,
             () => {
                 numberOfIterations += 1;
                 console.log(`[INFO] Iteration #${numberOfIterations} of ${name} at ${JobDate.getCurrentDateString()}`);
-                
+
                 Scheduler.crawlOnceCron(crawlJob, name)
                     .then(() => {
                         console.log(`[INFO] Iteration #${numberOfIterations} of job ${name} concluded at ${JobDate.getCurrentDateString()}`);
                     })
-                    .catch(err => {
+                    .catch((err) => {
                         console.log(err);
                     });
             }, // onTick
@@ -90,7 +89,7 @@ class Scheduler {
         return;
     }
 
-    private static async getCrawlJobAndName(): Promise<{ crawlJob: CrawlJob, name: string }> {
+    private static async getCrawlJobAndName(): Promise<{ crawlJob: CrawlJob; name: string }> {
         const job: Job | null = await Scheduler.manager.getFirstIncompleteJob();
 
         if (job == null) {
@@ -101,7 +100,7 @@ class Scheduler {
 
             const crawlJob: CrawlJob = new CrawlJob(jobName);
             await crawlJob.saveConfigsToDatabase();
-            return { crawlJob :crawlJob, name: jobName };
+            return { crawlJob: crawlJob, name: jobName };
         } else {
             // job already exists
             console.log(`[INFO] Incomplete job(s) found. Resuming crawl...`);
