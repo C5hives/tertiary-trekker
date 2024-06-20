@@ -3,6 +3,7 @@ import sqlite3, { Database } from 'sqlite3';
 
 // custom classes
 import JobDate from '../../utils/JobDate';
+import { appLogger } from '../../utils/logger';
 
 // typescript types
 import Job from '../../types/sql/Job';
@@ -28,7 +29,7 @@ class JobManager {
         await this.ensureTableExists();
 
         const jobs: Job[] = await this.getIncompleteJobs();
-        console.log(`[INFO] Found ${jobs.length} incomplete jobs`);
+        appLogger.info(`${jobs.length} incomplete jobs found`);
 
         return jobs?.[0];
     }

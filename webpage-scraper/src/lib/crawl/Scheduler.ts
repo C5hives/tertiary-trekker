@@ -5,7 +5,7 @@ import path from 'path';
 // custom classes
 import CrawlJob from './CrawlJob';
 import JobManager from '../databaseManagers/JobManager';
-import JobDate from '../../utils/JobDate';
+import { consoleLogger, appLogger } from '../../utils/logger';
 
 // config files
 import JobConfig from '../../../config/job.config.json';
@@ -18,10 +18,15 @@ class Scheduler {
     private static manager: JobManager = new JobManager(Scheduler.dbFilePath, 'jobs');
 
     public static async run(): Promise<void> {
-        if (JobConfig.crawlPeriodically) {
-            await this.runPeriodically();
-        } else {
-            await this.runContinuously();
+        try {
+            if (JobConfig.crawlPeriodically) {
+                await this.runPeriodically();
+            } else {
+                await this.runContinuously();
+            }
+        } catch (err) {
+            appLogger.error(`Job run failed. ${err}. Terminating program...`);
+            consoleLogger.error('Job run failed. Terminating program...');
         }
     }
 
@@ -30,21 +35,25 @@ class Scheduler {
 
         let numberOfIterations: number = 0;
 
-        console.log(`[INFO] Scheduling job ${name} at ${JobDate.getCurrentDateString()}`);
-        console.log(`[INFO] Attempts to crawl will be concurrent`);
+        appLogger.error(`Starting job ${name}. Mode: Concurrent`);
+        consoleLogger.info(`Starting job ${name}. Mode: Concurrent`);
 
         while (!(await crawlJob.isComplete())) {
             try {
                 numberOfIterations += 1;
-                console.log(`[INFO] Iteration #${numberOfIterations} of ${name} started at ${JobDate.getCurrentDateString()}`);
+                consoleLogger.info(`Iteration #${numberOfIterations} of ${name} started.`);
                 await Scheduler.crawlOnce(crawlJob);
-                console.log(`[INFO] Iteration #${numberOfIterations} of job ${name} concluded at ${JobDate.getCurrentDateString()}`);
+                consoleLogger.info(`Iteration #${numberOfIterations} of job ${name} concluded.`);
             } catch (err) {
-                console.log(`[ERROR] ${err}`);
+                consoleLogger.error(err);
+                appLogger.error(err);
             }
         }
-        console.log(`[INFO] Crawl job ${name} is complete. Marking as complete...`);
+
+        consoleLogger.info(`Crawl job ${name} is complete. Marking as complete.`);
+        appLogger.info(`Crawl job ${name} is complete. Marking as complete.`);
         await Scheduler.manager.markJobAsComplete(name);
+        consoleLogger.info(`Exiting program...`);
         process.exit(0);
     }
 
@@ -53,20 +62,20 @@ class Scheduler {
 
         let numberOfIterations: number = 0;
 
-        console.log(`[INFO] Scheduling job ${name} at ${JobDate.getCurrentDateString()}`);
-        console.log(`[INFO] Attempts to crawl will be made every ${JobConfig.crawlFrequencyInMinutes} minutes`);
+        appLogger.info(`Starting job ${name}. Mode: Every ${JobConfig.crawlFrequencyInMinutes} minutes.`);
+        consoleLogger.info(`Starting job ${name}. Mode: Every ${JobConfig.crawlFrequencyInMinutes} minutes.`);
         const cronJob = new CronJob(
             `*/${JobConfig.crawlFrequencyInMinutes} * * * *`, // cronTime,
             () => {
                 numberOfIterations += 1;
-                console.log(`[INFO] Iteration #${numberOfIterations} of ${name} started at ${JobDate.getCurrentDateString()}`);
-
+                consoleLogger.info(`Iteration #${numberOfIterations} of ${name} started.`);
                 Scheduler.crawlOnceCron(crawlJob, name)
                     .then(() => {
-                        console.log(`[INFO] Iteration #${numberOfIterations} of job ${name} concluded at ${JobDate.getCurrentDateString()}`);
+                        consoleLogger.info(`Iteration #${numberOfIterations} of job ${name} concluded.`);
                     })
                     .catch((err) => {
-                        console.log(err);
+                        consoleLogger.error(err);
+                        appLogger.error(err);
                     });
             }, // onTick
             null, // onComplete
@@ -77,23 +86,26 @@ class Scheduler {
     }
 
     private static async crawlOnce(crawlJob: CrawlJob): Promise<void> {
-        const start = performance.now();
+        const start: number = performance.now();
         await crawlJob.run();
-        const end = performance.now();
+        const end: number = performance.now();
+        const timeTaken: number = +(end - start).toFixed(2);
 
-        console.log(`[INFO] Time Taken: ${end - start}ms`);
+        consoleLogger.info(`Time Taken: ${timeTaken}ms`);
         return;
     }
 
     private static async crawlOnceCron(crawlJob: CrawlJob, name: string): Promise<void> {
         if (await crawlJob.isComplete()) {
-            console.log(`[INFO] Crawl job ${name} is complete. Marking as complete...`);
+            consoleLogger.info(`Crawl job ${name} is complete. Marking as complete.`);
+            appLogger.info(`Crawl job ${name} is complete. Marking as complete.`);
             process.exit(0);
         }
-        const start = performance.now();
+        const start: number = performance.now();
         await crawlJob.run();
-        const end = performance.now();
-        console.log(`[INFO] Time Taken: ${end - start}ms`);
+        const end: number = performance.now();
+        const timeTaken: number = +(end - start).toFixed(2);
+        consoleLogger.info(`Time Taken: ${timeTaken}ms`);
         return;
     }
 
@@ -102,8 +114,9 @@ class Scheduler {
 
         if (job == null) {
             // no existing jobs, create a new one
-            console.log(`[INFO] No existing jobs found. Creating a new one...`);
+            consoleLogger.info(`No existing jobs found. Creating a new one...`);
             const jobName: string = CrawlJob.generateFolderName();
+            appLogger.info(`Creating new job ${jobName}`);
             await Scheduler.manager.addNewJob(jobName);
 
             const crawlJob: CrawlJob = new CrawlJob(jobName);
@@ -111,7 +124,8 @@ class Scheduler {
             return { crawlJob: crawlJob, name: jobName };
         } else {
             // job already exists
-            console.log(`[INFO] Incomplete job(s) found. Resuming crawl...`);
+            consoleLogger.info(`Incomplete job(s) found. Resuming crawl...`);
+            appLogger.info(`Found job ${job.name} to resume.`);
             return { crawlJob: new CrawlJob(job.name), name: job.name };
         }
     }

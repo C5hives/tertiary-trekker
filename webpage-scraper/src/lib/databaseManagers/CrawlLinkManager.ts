@@ -26,7 +26,7 @@ class CrawlLinkManager {
 
         const result: UrlToCrawl[] = await new Promise((resolve, reject) => {
             const query: string = 'SELECT * ' + `FROM ${this.tableName} ` + 'WHERE url = ? AND isVisited = ?';
-            const values: string[] = [ url, 'TRUE'];
+            const values: string[] = [url, 'TRUE'];
 
             this.db.all(query, values, function (err: Error | null, rows: UrlToCrawl[]) {
                 if (err !== null) {

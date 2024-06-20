@@ -6,6 +6,7 @@ import Crawler from './Crawler';
 import JobDate from '../../utils/JobDate';
 import CrawlLinkManager from '../databaseManagers/CrawlLinkManager';
 import ExcludedLinkManager from '../databaseManagers/ExcludeLinkManager';
+import { consoleLogger, appLogger } from '../../utils/logger';
 
 // config files
 import JobOptions from '../../../config/job.config.json';
@@ -57,8 +58,10 @@ class CrawlJob {
      * @returns An void Promise
      */
     public async run(): Promise<void> {
-        console.log(`[INFO] Crawling ${JobOptions.batchSizePerCrawl} sites`);
-        await this.crawl(JobOptions.batchSizePerCrawl);
+        const batchSize: number = JobOptions.batchSizePerCrawl;
+        consoleLogger.info(`Crawling ${batchSize} sites`);
+        appLogger.info(`Crawling ${batchSize} sites. ${Math.floor(batchSize / this.trackers.size)}`);
+        await this.crawl(batchSize);
         return;
     }
 
@@ -85,7 +88,8 @@ class CrawlJob {
 
                 await crawler.scrapeAll(urls);
             } catch (err) {
-                console.log(`Crawl attempt failed for ${university.name}`);
+                consoleLogger.error(`Crawl attempt failed for ${university.name}. Skipping...`);
+                appLogger.error(`Crawl attempt failed for ${university.name}. ${err}`);
             }
         }
     }
@@ -93,7 +97,6 @@ class CrawlJob {
     public async saveConfigsToDatabase(): Promise<void> {
         await this.saveUniversityConfigsToDatabase();
         await this.saveGlobalConfigsToDatabase();
-        return;
     }
 
     private async saveUniversityConfigsToDatabase(): Promise<void> {
@@ -103,7 +106,8 @@ class CrawlJob {
                 await this.updateExclusions(tracker.exclude, university.exclude, university.name);
                 await this.updateInclusions(tracker.include, university.include);
             } catch (err) {
-                console.log(`Link configurations for ${university.name} failed to update due to ${err}`);
+                appLogger.error(`Link configurations for ${university.name} failed to initialise. ${err}`);
+                throw new Error(`Link configurations for ${university.name} failed to initialise.`);
             }
         }
         return;
@@ -114,7 +118,8 @@ class CrawlJob {
             const manager: ExcludedLinkManager = new ExcludedLinkManager(this.databaseFilePath, 'excluded');
             await this.updateExclusions(manager, LinkOptions.globalExclude, 'global');
         } catch (err) {
-            console.log(`Global link config failed to update due to ${err}`);
+            appLogger.error(`Global link configurations failed to initialise. ${err}`);
+            throw new Error(`Global link configurations failed to initialise.`);
         }
         return;
     }

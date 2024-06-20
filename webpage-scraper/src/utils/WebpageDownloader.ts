@@ -1,6 +1,10 @@
+// npm packages
 import path from 'path';
 import fs from 'fs';
+
+// custome classes
 import UrlUtils from './UrlUtils';
+import { appLogger } from './logger';
 
 class WebpageDownloader {
     /**
@@ -21,10 +25,7 @@ class WebpageDownloader {
             // save parsed content to a html file
             await fs.promises.writeFile(filePath, content, 'utf-8');
         } catch (err) {
-            throw new Error(`Failed to save ${url} to
-                Directory: ${path.dirname(filePath)}
-                Path: ${filePath}
-                Error: ${err}`);
+            throw new Error(`Failed to save ${url} to a file. ${err}`);
         }
 
         return;
@@ -61,8 +62,11 @@ class WebpageDownloader {
 
         // replace '/' with '\' to fit with file path syntax
         relativePath = relativePath.replace(/\//g, path.sep);
+        const filePath: string = path.join(savePath, urlObject.hostname, relativePath);
 
-        return path.join(savePath, urlObject.hostname, relativePath);
+        appLogger.info(`Filepath for ${url} is ${filePath}`);
+
+        return filePath;
     }
 }
 

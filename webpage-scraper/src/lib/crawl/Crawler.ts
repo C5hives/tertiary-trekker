@@ -9,6 +9,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import JobDate from '../../utils/JobDate';
 import UrlUtils from '../../utils/UrlUtils';
 import WebpageDownloader from '../../utils/WebpageDownloader';
+import { consoleLogger, appLogger } from '../../utils/logger';
 
 // typescript types
 import CrawlTracker from '../../types/CrawlTracker';
@@ -62,7 +63,7 @@ class Crawler {
             const excludedUrls: string[] = await this.tracker.exclude.getExcludedLinks(this.universityName);
             this.excludedLinks = new Set<string>(excludedUrls);
         } catch (err) {
-            throw new Error(`Failed to initialize data structures to track crawling status : ${err}`);
+            throw new Error(`Failed to initialize crawling trackers. ${err}`);
         }
 
         Crawler.cluster = await Cluster.launch({
@@ -95,7 +96,7 @@ class Crawler {
             await this.markCrawledLinksAsVisited();
             await this.addNewLinks();
         } catch (err) {
-            throw new Error(`Failed to update crawl results into database due to: ${err}`);
+            throw new Error(`Failed to update crawl results into database. ${err}`);
         }
         return;
     }
@@ -124,18 +125,24 @@ class Crawler {
         let url = jsObject.data.url;
         const crawler = jsObject.data.crawler;
 
+        appLogger.info(`Starting crawl for ${url}.`);
         page.setDefaultNavigationTimeout(10000);
 
         try {
-            let { content, newUrl } = await crawler.getContentFromUrl(page, url);
-            url = newUrl; // a new url only exists if the page redirects
+            const result = await crawler.getContentFromUrl(page, url);
+            const newUrl = result.newUrl;
+            let content = result.content;
+            
+            url = newUrl; // will change only if the page redirects
             if (await crawler.tracker.include.isVisited(url)) {
-                console.log(`[INFO] ${url} has already been visited. This is likely due to redirection. Skipping...`);
+                appLogger.info(`${url} has already been visited. This is likely due to redirection. Skipping...`);
                 return;
             }
 
             if (!crawler.shouldCrawl(url)) {
-                throw new Error('url is in the exclusion list')
+                appLogger.info(`${url} is in the exclusion list. Skipping...`);
+                crawler.visitedLinks.set(url, 'skipped');
+                return;
             }
 
             content = crawler.removeUnneededTags(content);
@@ -149,10 +156,13 @@ class Crawler {
                 }
             }
 
+            appLogger.info(`${crawler.discoveredLinks.size} new links discovered.`);
+
             await WebpageDownloader.saveToFile(crawler.savePath, url, content);
             crawler.visitedLinks.set(url, 'ok');
         } catch (error) {
-            console.log(`[ERROR] Failed to complete crawl due to: ${error}`);
+            appLogger.error(`Failed to complete crawl. ${error}`);
+            consoleLogger.error('Failed to complete crawl.');
             crawler.visitedLinks.set(url, 'error - ' + error);
         }
         return;
@@ -165,7 +175,7 @@ class Crawler {
      * @param url - The url to scrape data from
      * @returns A Promise containing the contents of the website
      */
-    private async getContentFromUrl(page: Page, url: string): Promise<{ content: string, newUrl: string }> {
+    private async getContentFromUrl(page: Page, url: string): Promise<{ content: string; newUrl: string }> {
         // Navigate the page to a URL
         const response: HTTPResponse | null = await page.goto(url, { waitUntil: 'domcontentloaded' });
 
@@ -217,33 +227,37 @@ class Crawler {
      * @returns A Set of urls
      */
     private buildAndCleanUrls(rawUrls: string[], baseUrl: string): string[] {
-        const cleanedUrls: Set<string> = new Set<string>();
+        const cleanUrls: Set<string> = new Set<string>();
         for (const url of rawUrls) {
             try {
                 // convert url into a standardised format
                 if (url.includes('javascript')) {
+                    appLogger.debug(`Skipping ${url} as it is a script.`);
                     continue;
                 }
-                const cleanedUrl = UrlUtils.cleanUrl(url, baseUrl);
-                cleanedUrls.add(cleanedUrl);
+                const cleanUrl = UrlUtils.cleanUrl(url, baseUrl);
+                cleanUrls.add(cleanUrl);
             } catch (err) {
-                console.log(`Cleaning url failed due to: ${err}`);
+                appLogger.error(`Failed to clean url. ${err}`);
             }
         }
-        return Array.from(cleanedUrls.values());
+        return Array.from(cleanUrls.values());
     }
 
     private shouldCrawl(url: string): boolean {
         if (!this.containsLinkPattern(url)) {
+            appLogger.debug(`${url} does not match link patterns`);
             return false;
         }
 
         if (this.isBlacklisted(url)) {
+            appLogger.debug(`${url} is blacklisted`);
             return false;
         }
 
         if (UrlUtils.isMimeType(url) && !UrlUtils.isHtml(url)) {
             // url is some kind of file extension that isn't .html
+            appLogger.debug(`${url} is a path that points to a non-html file.`);
             return false;
         }
 

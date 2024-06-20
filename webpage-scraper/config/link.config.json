@@ -14,7 +14,7 @@
                 "https://pharmacy.nus.edu.sg/",
                 "https://nuscollege.nus.edu.sg/"
             ],
-            "linkMustContain": [ "nus.edu.sg" ],
+            "linkMustContain": ["nus.edu.sg"],
             "exclude": [
                 "https://share.nus.edu.sg",
                 "https://myportal.nus.edu.sg",
@@ -77,8 +77,7 @@
                 "https://ihealthtech.nus.edu.sg",
                 "https://ipur.nus.edu.sg",
                 "https://itunesu.nus.edu.sg",
-                "https://learning.nus.edu.sg",
-                ""
+                "https://learning.nus.edu.sg"
             ]
         },
         {
