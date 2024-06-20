@@ -57,7 +57,7 @@ class CrawlJob {
      * @returns An void Promise
      */
     public async run(): Promise<void> {
-        console.log(`[INFO] Crawling ${JobOptions.batchSizePerCrawl} sites per university`);
+        console.log(`[INFO] Crawling ${JobOptions.batchSizePerCrawl} sites`);
         await this.crawl(JobOptions.batchSizePerCrawl);
         return;
     }

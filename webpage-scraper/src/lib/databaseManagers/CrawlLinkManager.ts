@@ -21,6 +21,25 @@ class CrawlLinkManager {
         this.tableName = tableName;
     }
 
+    public async isVisited(url: string): Promise<boolean> {
+        await this.ensureTableExists();
+
+        const result: UrlToCrawl[] = await new Promise((resolve, reject) => {
+            const query: string = 'SELECT * ' + `FROM ${this.tableName} ` + 'WHERE url = ? AND isVisited = ?';
+            const values: string[] = [ url, 'TRUE'];
+
+            this.db.all(query, values, function (err: Error | null, rows: UrlToCrawl[]) {
+                if (err !== null) {
+                    reject(err);
+                    return;
+                }
+                resolve(rows);
+            });
+        });
+
+        return result.length > 0;
+    }
+
     public async markUrlsAsVisited(links: { url: string; outcome: string }[], date: string): Promise<number> {
         if (links.length < 1) {
             return Promise.resolve(0);

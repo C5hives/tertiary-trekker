@@ -3,5 +3,5 @@
     "downloadRootDirectory": "./jobs/",
     "batchSizePerCrawl": 100,
     "crawlPeriodically": true,
-    "crawlFrequencyInMinutes": 5
+    "crawlFrequencyInMinutes": 15
 }

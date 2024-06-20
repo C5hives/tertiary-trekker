@@ -65,20 +65,18 @@ class Crawler {
             throw new Error(`Failed to initialize data structures to track crawling status : ${err}`);
         }
 
-        if (!Crawler.cluster) {
-            Crawler.cluster = await Cluster.launch({
-                concurrency: Cluster.CONCURRENCY_CONTEXT,
-                maxConcurrency: 5,
-                puppeteerOptions: { headless: true },
-                retryLimit: 2,
-                sameDomainDelay: 1000,
-                skipDuplicateUrls: true,
-                timeout: 30000,
-                monitor: false,
-                workerCreationDelay: 100,
-                puppeteer: puppeteer.use(StealthPlugin())
-            });
-        }
+        Crawler.cluster = await Cluster.launch({
+            concurrency: Cluster.CONCURRENCY_CONTEXT,
+            maxConcurrency: 5,
+            puppeteerOptions: { headless: true },
+            retryLimit: 2,
+            sameDomainDelay: 5000,
+            skipDuplicateUrls: true,
+            timeout: 30000,
+            monitor: false,
+            workerCreationDelay: 100,
+            puppeteer: puppeteer.use(StealthPlugin())
+        });
 
         // set function that each worker will run
         await Crawler.cluster.task(this.crawlUrl);
@@ -123,13 +121,23 @@ class Crawler {
 
     private async crawlUrl(jsObject: { page: Page; data: { url: string; crawler: Crawler } }): Promise<void> {
         const page = jsObject.page;
-        const url = jsObject.data.url;
+        let url = jsObject.data.url;
         const crawler = jsObject.data.crawler;
 
         page.setDefaultNavigationTimeout(10000);
 
         try {
-            let content: string = await crawler.getContentFromUrl(page, url);
+            let { content, newUrl } = await crawler.getContentFromUrl(page, url);
+            url = newUrl; // a new url only exists if the page redirects
+            if (await crawler.tracker.include.isVisited(url)) {
+                console.log(`[INFO] ${url} has already been visited. This is likely due to redirection. Skipping...`);
+                return;
+            }
+
+            if (!crawler.shouldCrawl(url)) {
+                throw new Error('url is in the exclusion list')
+            }
+
             content = crawler.removeUnneededTags(content);
 
             const newLinks: string[] = crawler.discoverUniqueLinks(content);
@@ -157,14 +165,17 @@ class Crawler {
      * @param url - The url to scrape data from
      * @returns A Promise containing the contents of the website
      */
-    private async getContentFromUrl(page: Page, url: string): Promise<string> {
+    private async getContentFromUrl(page: Page, url: string): Promise<{ content: string, newUrl: string }> {
         // Navigate the page to a URL
         const response: HTTPResponse | null = await page.goto(url, { waitUntil: 'domcontentloaded' });
 
         if (response == null) {
             return Promise.reject(`No response. Failed to fetch content from ${url}`);
         }
-        return await page.content();
+
+        const content = await page.content();
+        const newUrl = page.url();
+        return { content, newUrl };
     }
 
     private removeUnneededTags(content: string): string {

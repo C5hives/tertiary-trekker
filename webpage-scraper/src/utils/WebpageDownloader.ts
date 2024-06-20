@@ -11,8 +11,9 @@ class WebpageDownloader {
      * @param content - The contents of a html file
      */
     public static async saveToFile(savePath: string, url: string, content: string): Promise<void> {
+        let filePath: string = '';
         try {
-            const filePath = WebpageDownloader.determineFilePath(savePath, url);
+            filePath = WebpageDownloader.determineFilePath(savePath, url);
 
             // creates a destination folder to save the html file to
             await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
@@ -20,7 +21,10 @@ class WebpageDownloader {
             // save parsed content to a html file
             await fs.promises.writeFile(filePath, content, 'utf-8');
         } catch (err) {
-            throw new Error(`Failed to save file for ${url} - ${err}`);
+            throw new Error(`Failed to save ${url} to
+                Directory: ${path.dirname(filePath)}
+                Path: ${filePath}
+                Error: ${err}`);
         }
 
         return;
