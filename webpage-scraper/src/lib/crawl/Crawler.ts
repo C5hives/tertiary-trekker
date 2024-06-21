@@ -119,7 +119,7 @@ class Crawler {
             const parser: HtmlParser = new HtmlParser(url, result.content);
             const content = parser.getCleanHtml();
 
-            const newUrls: string[] = parser.getUniqueUrlsInHtml().filter(crawler.shouldCrawl);
+            const newUrls: string[] = parser.getUniqueUrlsInHtml().filter(crawler.shouldCrawl, crawler);
             for (const url of newUrls) {
                 crawler.discoveredUrls.add(url);
             }
