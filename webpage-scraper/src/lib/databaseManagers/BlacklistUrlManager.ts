@@ -4,7 +4,7 @@ import sqlite3, { Database } from 'sqlite3';
 // typescript types
 import UrlToExclude from '../../types/sql/UrlToExclude';
 
-class ExcludeLinkManager {
+class BlacklistUrlManager {
     private db: Database;
     private tableName: string;
 
@@ -21,7 +21,7 @@ class ExcludeLinkManager {
         this.tableName = tableName;
     }
 
-    public async getExcludedLinks(university: string): Promise<string[]> {
+    public async getBlacklistedUrls(university: string): Promise<string[]> {
         await this.ensureTableExists();
 
         const result: UrlToExclude[] = await new Promise((resolve, reject) => {
@@ -37,10 +37,10 @@ class ExcludeLinkManager {
             });
         });
 
-        return result.map((linkToExclude) => linkToExclude.url);
+        return result.map((urlToExclude) => urlToExclude.url);
     }
 
-    public async insertExcludedLinks(urls: string[], category: string): Promise<number> {
+    public async insertBlacklistedUrls(urls: string[], category: string): Promise<number> {
         if (urls.length < 1) {
             return Promise.resolve(0);
         }
@@ -112,4 +112,4 @@ class ExcludeLinkManager {
     }
 }
 
-export default ExcludeLinkManager;
+export default BlacklistUrlManager;

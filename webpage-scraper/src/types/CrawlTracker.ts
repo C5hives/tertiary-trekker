@@ -1,10 +1,10 @@
 // custom classes
-import CrawlLinkManager from '../lib/databaseManagers/CrawlLinkManager';
-import ExcludeLinkManager from '../lib/databaseManagers/ExcludeLinkManager';
+import CrawlUrlManager from '../lib/databaseManagers/CrawlUrlManager';
+import BlacklistUrlManager from '../lib/databaseManagers/BlacklistUrlManager';
 
 type CrawlTracker = {
-    include: CrawlLinkManager;
-    exclude: ExcludeLinkManager;
+    include: CrawlUrlManager;
+    exclude: BlacklistUrlManager;
 };
 
 export default CrawlTracker;

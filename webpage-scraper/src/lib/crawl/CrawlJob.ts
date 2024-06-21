@@ -4,8 +4,8 @@ import path from 'path';
 // custom classes
 import Crawler from './Crawler';
 import JobDate from '../../utils/JobDate';
-import CrawlLinkManager from '../databaseManagers/CrawlLinkManager';
-import ExcludedLinkManager from '../databaseManagers/ExcludeLinkManager';
+import CrawlUrlManager from '../databaseManagers/CrawlUrlManager';
+import BlacklistUrlManager from '../databaseManagers/BlacklistUrlManager';
 import { consoleLogger, appLogger } from '../../utils/logger';
 
 // config files
@@ -36,15 +36,15 @@ class CrawlJob {
         this.databaseFilePath = path.join(path.resolve(JobOptions.databaseLocation), this.jobId + '.db');
 
         // could be a singleton, but is never referenced again with current implementation
-        const excludedLinkManager = new ExcludedLinkManager(this.databaseFilePath, 'excluded');
+        const blacklistUrlManager = new BlacklistUrlManager(this.databaseFilePath, 'excluded');
 
         // initialise trackers for each university category
         this.trackers = new Map<UniversityOptions, CrawlTracker>();
         for (const university of LinkOptions.universities) {
-            const crawlLinkManager: CrawlLinkManager = new CrawlLinkManager(this.databaseFilePath, university.name);
+            const crawlUrlManager: CrawlUrlManager = new CrawlUrlManager(this.databaseFilePath, university.name);
             this.trackers.set(university, {
-                include: crawlLinkManager,
-                exclude: excludedLinkManager
+                include: crawlUrlManager,
+                exclude: blacklistUrlManager
             });
         }
     }
@@ -81,8 +81,8 @@ class CrawlJob {
             try {
                 const savePath: string = path.join(this.rootDirectory, this.jobId, university.name);
 
-                const linkPatterns: string[] = university.linkMustContain;
-                const crawler: Crawler = new Crawler(savePath, linkPatterns, tracker, university.name);
+                const urlPatterns: string[] = university.linkMustContain;
+                const crawler: Crawler = new Crawler(savePath, urlPatterns, tracker, university.name);
 
                 const urls: string[] = await tracker.include.getUnvisitedUrls(batchSizePerCategory);
 
@@ -115,7 +115,7 @@ class CrawlJob {
 
     private async saveGlobalConfigsToDatabase(): Promise<void> {
         try {
-            const manager: ExcludedLinkManager = new ExcludedLinkManager(this.databaseFilePath, 'excluded');
+            const manager: BlacklistUrlManager = new BlacklistUrlManager(this.databaseFilePath, 'excluded');
             await this.updateExclusions(manager, LinkOptions.globalExclude, 'global');
         } catch (err) {
             appLogger.error(`Global link configurations failed to initialise. ${err}`);
@@ -124,16 +124,16 @@ class CrawlJob {
         return;
     }
 
-    private async updateExclusions(manager: ExcludedLinkManager, urls: string[], category: string): Promise<void> {
+    private async updateExclusions(manager: BlacklistUrlManager, urls: string[], category: string): Promise<void> {
         if (urls.length < 1) {
             return;
         }
 
-        await manager.insertExcludedLinks(urls, category);
+        await manager.insertBlacklistedUrls(urls, category);
         return;
     }
 
-    private async updateInclusions(manager: CrawlLinkManager, urls: string[]): Promise<void> {
+    private async updateInclusions(manager: CrawlUrlManager, urls: string[]): Promise<void> {
         if (urls.length < 1) {
             return;
         }

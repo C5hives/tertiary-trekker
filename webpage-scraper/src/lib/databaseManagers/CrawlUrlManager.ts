@@ -4,7 +4,7 @@ import sqlite3, { Database } from 'sqlite3';
 // typescript types
 import UrlToCrawl from '../../types/sql/UrlToCrawl';
 
-class CrawlLinkManager {
+class CrawlUrlManager {
     private db: Database;
     private tableName: string;
 
@@ -40,16 +40,16 @@ class CrawlLinkManager {
         return result.length > 0;
     }
 
-    public async markUrlsAsVisited(links: { url: string; outcome: string }[], date: string): Promise<number> {
-        if (links.length < 1) {
+    public async markUrlsAsVisited(urls: { url: string; outcome: string }[], date: string): Promise<number> {
+        if (urls.length < 1) {
             return Promise.resolve(0);
         }
 
         await this.ensureTableExists();
 
         let numberOfChanges: number = 0;
-        for (const link of links) {
-            numberOfChanges += await this.markUrlAsVisited(link, date);
+        for (const url of urls) {
+            numberOfChanges += await this.markUrlAsVisited(url, date);
         }
         return numberOfChanges;
     }
@@ -206,4 +206,4 @@ class CrawlLinkManager {
     }
 }
 
-export default CrawlLinkManager;
+export default CrawlUrlManager;

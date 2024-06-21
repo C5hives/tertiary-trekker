@@ -3,8 +3,8 @@ import path from 'path';
 import fs from 'fs';
 
 // custome classes
-import UrlUtils from './UrlUtils';
-import { appLogger } from './logger';
+import { appLogger } from '../../utils/logger';
+import UrlFilter from '../parse/UrlFilter';
 
 class WebpageDownloader {
     /**
@@ -54,7 +54,7 @@ class WebpageDownloader {
         let relativePath = '';
         if (pathName === '') {
             relativePath = 'index.html';
-        } else if (UrlUtils.isHtml(pathName)) {
+        } else if (new UrlFilter().isHtml(pathName)) {
             relativePath = pathName;
         } else {
             relativePath = `${pathName}\\index.html`;
@@ -64,7 +64,7 @@ class WebpageDownloader {
         relativePath = relativePath.replace(/\//g, path.sep);
         const filePath: string = path.join(savePath, urlObject.hostname, relativePath);
 
-        appLogger.info(`Filepath for ${url} is ${filePath}`);
+        appLogger.debug(`Filepath for ${url} is ${filePath}`);
 
         return filePath;
     }

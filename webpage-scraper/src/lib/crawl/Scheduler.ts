@@ -69,7 +69,7 @@ class Scheduler {
             () => {
                 numberOfIterations += 1;
                 consoleLogger.info(`Iteration #${numberOfIterations} of ${name} started.`);
-                Scheduler.crawlOnceCron(crawlJob, name)
+                Scheduler.crawlOnceUsingCron(crawlJob, name)
                     .then(() => {
                         consoleLogger.info(`Iteration #${numberOfIterations} of job ${name} concluded.`);
                     })
@@ -95,7 +95,7 @@ class Scheduler {
         return;
     }
 
-    private static async crawlOnceCron(crawlJob: CrawlJob, name: string): Promise<void> {
+    private static async crawlOnceUsingCron(crawlJob: CrawlJob, name: string): Promise<void> {
         if (await crawlJob.isComplete()) {
             consoleLogger.info(`Crawl job ${name} is complete. Marking as complete.`);
             appLogger.info(`Crawl job ${name} is complete. Marking as complete.`);

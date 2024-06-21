@@ -1,7 +1,4 @@
-// npm packages
-import * as mime from 'mime-types';
-
-class UrlUtils {
+class UrlCleaner {
     /**
      * Removes anchors and query parameters from a url.
      *
@@ -11,12 +8,11 @@ class UrlUtils {
     public static cleanUrl(url: string, base: string): string {
         if (!URL.canParse(url)) {
             // attempt to build an absolute url
-            url = UrlUtils.buildFullUrl(url, base);
+            url = UrlCleaner.buildFullUrl(url, base);
         }
 
         const urlObj: URL = new URL(url);
 
-        urlObj.protocol = 'https'; // convert all links to https
         urlObj.hash = ''; // remove anchors from url
         urlObj.search = ''; // remove search parameters from url
 
@@ -39,14 +35,6 @@ class UrlUtils {
         }
         return new URL(url, base).toString();
     }
-
-    public static isMimeType(url: string): boolean {
-        return !(mime.lookup(url) === false);
-    }
-
-    public static isHtml(url: string): boolean {
-        return mime.lookup(url) === 'text/html';
-    }
 }
 
-export default UrlUtils;
+export default UrlCleaner;

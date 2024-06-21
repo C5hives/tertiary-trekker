@@ -1,8 +1,10 @@
 {
     "dependencies": {
+        "@types/js-beautify": "^1.14.3",
         "cheerio": "^1.0.0-rc.12",
         "cron": "^3.1.7",
         "fs": "^0.0.1-security",
+        "js-beautify": "^1.15.1",
         "log4js": "^6.9.1",
         "mime-types": "^2.1.35",
         "puppeteer": "^18.1.0",
