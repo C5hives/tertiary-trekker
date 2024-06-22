@@ -99,22 +99,27 @@ class Crawler {
         let url = jsObject.data.url;
         const crawler = jsObject.data.crawler;
 
-        appLogger.info(`Starting crawl for ${url}.`);
-        page.setDefaultNavigationTimeout(20000);
+        appLogger.debug(`Starting crawl for ${url}.`);
+        page.setDefaultNavigationTimeout(10000);
 
         try {
             const result = await crawler.getContentFromUrl(page, url);
-            url = result.newUrl; // will change only if the page redirects
-            if (await crawler.tracker.include.isVisited(url)) {
-                appLogger.info(`${url} has already been visited. This is likely due to redirection. Skipping...`);
+            if (await crawler.tracker.include.isVisited(result.newUrl)) {
+                appLogger.debug(`${result.newUrl} has already been visited. This is likely due to redirection. Skipping...`);
+                appLogger.debug(`Marking ${url} as visited...`);
+                crawler.visitedUrls.set(url, 'skipped'); // mark old url (that led to the redirection) as visited but skipped
                 return;
             }
 
-            if (!crawler.shouldCrawl(url)) {
-                appLogger.info(`${url} should not be crawled. Skipping...`);
-                crawler.visitedUrls.set(url, 'skipped');
+            if (!crawler.shouldCrawl(result.newUrl)) {
+                appLogger.debug(`${result.newUrl} should not be crawled. Skipping...`);
+                appLogger.debug(`Marking ${url} as visited...`);
+                crawler.visitedUrls.set(url, 'skipped'); // mark old url (that led to the redirection) as visited but skipped
                 return;
             }
+
+            appLogger.debug(`${url} is new. Attempting to parse and save...`);
+            url = result.newUrl; // update old url with new one
 
             const parser: HtmlParser = new HtmlParser(url, result.content);
             const content = parser.getCleanHtml();
@@ -129,10 +134,11 @@ class Crawler {
             await WebpageDownloader.saveToFile(crawler.savePath, url, content);
             crawler.visitedUrls.set(url, 'ok');
         } catch (error) {
-            appLogger.error(`Failed to complete crawl for ${url}. ${error}`);
-            consoleLogger.error(`Failed to complete crawl for ${url}.`);
+            appLogger.error(`Failed to complete crawl for ${url} ${error}`);
+            consoleLogger.error(`Failed to complete crawl for ${url}`);
             crawler.visitedUrls.set(url, 'error - ' + error);
         }
+        appLogger.debug(`Finished crawl for ${url}.`);
         return;
     }
 

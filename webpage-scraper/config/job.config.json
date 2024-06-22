@@ -1,7 +1,7 @@
 {
     "databaseLocation": "./database/",
     "downloadRootDirectory": "./jobs/",
-    "batchSizePerCrawl": 300,
+    "batchSizePerCrawl": 200,
     "crawlPeriodically": true,
     "crawlFrequencyInMinutes": 20
 }
