@@ -49,18 +49,30 @@ class Crawler {
             this.visitedUrls = new Map<string, string>();
             await this.initialiseBlacklistedUrls();
         } catch (err) {
-            throw new Error(`Failed to initialize crawling trackers. ${err}`);
+            appLogger.error(`Failed to initialize crawling trackers. ${err}`);
+            appLogger.error(`Exiting current crawl attempt...`);
+            return;
         }
 
-        await this.initialiseCluster();
-        this.queueUrls(urls);
-        await this.waitForClusterToFinishCrawl();
-
+        try {
+            await this.initialiseCluster();
+            this.queueUrls(urls);
+            await this.cluster.idle();
+            await this.cluster.close();
+            appLogger.debug('Puppeteer cluster closed');
+        } catch (err) {
+            appLogger.error(`Something went wrong when crawling. ${err}`);
+            appLogger.error(`Exiting current crawl attempt...`);
+            return;
+        }
+        
         try {
             await this.markCrawledUrlsAsVisited();
             await this.addNewUrlsToCrawl();
         } catch (err) {
-            throw new Error(`Failed to update crawl results into database. ${err}`);
+            appLogger.error(`Failed to update crawl results into database. ${err}`);
+            appLogger.error(`Exiting current crawl attempt...`);
+            return;
         }
         return;
     }
@@ -157,12 +169,6 @@ class Crawler {
                 crawler: this
             });
         }
-        return;
-    }
-
-    private async waitForClusterToFinishCrawl(): Promise<void> {
-        await this.cluster.idle();
-        await this.cluster.close();
         return;
     }
 

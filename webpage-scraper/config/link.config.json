@@ -172,6 +172,7 @@
         "https://telegram.org/",
         "https://t.me/",
         "https://www.outlook.com/",
+        "mailto:",
         "http://mailto:",
         "https://mailto:"
     ]
