@@ -29,7 +29,19 @@ npm start
 ```
 
 # 2. File Parser
-WIP
+1. Same as Web Crawler
+
+2. From the project directory, navigate to the `webpage-parser` Folder.
+
+3. Install the required dependencies using
+```
+mvn install
+```
+
+4. Run the Unit test using
+```
+mvn clean test
+```
 
 # 3. Database and Backend Server
 WIP
