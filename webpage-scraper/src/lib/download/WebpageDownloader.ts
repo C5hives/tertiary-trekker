@@ -1,5 +1,10 @@
+// npm packages
 import path from 'path';
 import fs from 'fs';
+
+// custome classes
+import { appLogger } from '../../utils/logger';
+import UrlFilter from '../parse/UrlFilter';
 
 class WebpageDownloader {
     /**
@@ -10,20 +15,19 @@ class WebpageDownloader {
      * @param content - The contents of a html file
      */
     public static async saveToFile(savePath: string, url: string, content: string): Promise<void> {
-        // TODO: should probably throw the error instead of catching here
+        let filePath: string = '';
         try {
-            const filePath = WebpageDownloader.determineFilePath(url, savePath);
+            filePath = WebpageDownloader.determineFilePath(savePath, url);
 
             // creates a destination folder to save the html file to
             await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
 
             // save parsed content to a html file
             await fs.promises.writeFile(filePath, content, 'utf-8');
-
-            // console.log(`[INFO] File saved as: ${filePath}`);
-        } catch (error) {
-            console.error(error);
+        } catch (err) {
+            throw new Error(`Failed to save ${url} to a file. ${err}`);
         }
+
         return;
     }
 
@@ -37,11 +41,11 @@ class WebpageDownloader {
      * @param savePath - The folder path to save the file to
      * @returns An absolute file path
      */
-    private static determineFilePath(url: string, savePath: string): string {
-        const urlObject = new URL(url);
+    private static determineFilePath(savePath: string, url: string): string {
+        const urlObject: URL = new URL(url);
 
         // remove trailing slash in path name if any
-        let pathName = urlObject.pathname;
+        let pathName: string = urlObject.pathname;
         if (pathName.charAt(pathName.length - 1) === '/') {
             pathName = pathName.slice(0, pathName.length - 1);
         }
@@ -50,14 +54,19 @@ class WebpageDownloader {
         let relativePath = '';
         if (pathName === '') {
             relativePath = 'index.html';
+        } else if (new UrlFilter().isHtml(pathName)) {
+            relativePath = pathName;
         } else {
             relativePath = `${pathName}\\index.html`;
         }
 
         // replace '/' with '\' to fit with file path syntax
         relativePath = relativePath.replace(/\//g, path.sep);
+        const filePath: string = path.join(savePath, urlObject.hostname, relativePath);
 
-        return path.join(savePath, urlObject.hostname, relativePath);
+        appLogger.debug(`Filepath for ${url} is ${filePath}`);
+
+        return filePath;
     }
 }
 

@@ -1,5 +1,8 @@
+**/.vscode/
+
 webpage-scraper/database/*
 webpage-scraper/dist/**/*
 webpage-scraper/jobs/**/*
+webpage-scraper/logs/**/*
 webpage-scraper/node_modules/**/*
 
