@@ -1,19 +1,21 @@
 package com.parser;
 
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.io.File;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.boilerpipe.BoilerpipeContentHandler;
-import org.json.JSONObject;
-import org.json.JSONArray;
+
+import com.backend.model.IndexData;
+
 
 public class Parser {
-    private static JSONArray result = new JSONArray();
+    private static ArrayList<IndexData> result = new ArrayList<>();
 
-    public static JSONObject parseDoc(String fileName) {
+    public static IndexData parseDoc(String fileName) {
         try {
             BodyContentHandler handler = new BodyContentHandler(); 
             Metadata metadata = new Metadata();
@@ -22,15 +24,19 @@ public class Parser {
             AutoDetectParser parser = new AutoDetectParser(); 
             parser.parse(inputStream, new BoilerpipeContentHandler(handler), metadata, parseContext);
 
-            JSONObject result = new JSONObject();
-            result.put("content", handler.toString().replaceAll("\\s+"," "));
+            IndexData result = new IndexData();
+            String content = handler.toString().replaceAll("\\s+"," ");
+            if (!content.equals("")){
+                result.setContent(content);
+            } 
 
             String[] metadataNames = metadata.names();
 
             for(String name: metadataNames) {
                 if (name.contains("title")) {
-                    System.out.println(name + " " + metadata.get(name));
-                    result.put("title", metadata.get(name));
+                    if (metadata.get(name) != "") {
+                        result.setTitle(metadata.get(name));
+                    }
                 }
             }
             return result;
@@ -40,22 +46,33 @@ public class Parser {
         return null;
     }
 
-    public static void iterateAndParseFiles(File f, String URLname) {
+    public static void iterateAndParseFiles(File f, String URLname, String category) {
         File files[];
 
         if (f.isFile()) {
-            JSONObject obj = Parser.parseDoc(f.getPath().toString());
-            obj.put("URL", URLname.substring(1));
-            Parser.result.put(obj);
+            IndexData obj = Parser.parseDoc(f.getPath().toString());
+            if (obj != null) {
+                obj.setURL(URLname.substring(1));
+                obj.setCategory(category);
+                Parser.result.add(obj);
+            }
         } else {
             files = f.listFiles();
             for (File file : files) {
-                iterateAndParseFiles(file, URLname + "/" + file.getName().toString());
+                if (category == "") {
+                    iterateAndParseFiles(file, URLname, file.getName().toString());
+                } else {
+                    if (file.isFile()) {
+                        iterateAndParseFiles(file, URLname, category);
+                    } else {
+                        iterateAndParseFiles(file, URLname + "/" + file.getName().toString(), category); 
+                    }
+                }
             }
         }
     }
 
-    public static JSONArray getParsedDataAsJSON() {
+    public static ArrayList<IndexData> getParsedDataAsJSON() {
         return Parser.result;
     }
 }

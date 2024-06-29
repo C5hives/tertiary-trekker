@@ -6,3 +6,5 @@ webpage-scraper/jobs/**/*
 webpage-scraper/logs/**/*
 webpage-scraper/node_modules/**/*
 
+webpage-parser/logs/*
+

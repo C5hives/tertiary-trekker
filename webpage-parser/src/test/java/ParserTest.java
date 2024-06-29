@@ -1,11 +1,12 @@
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import java.util.ArrayList;
+
 import org.junit.Test;
 
 import com.parser.Parser;
+import com.backend.model.IndexData;
 
 public class ParserTest {
 
@@ -18,11 +19,11 @@ public class ParserTest {
     @Test
     public void testParseDoc() {
         //Parsing only the first test html file
-        JSONObject result = Parser.parseDoc(cwdString + "\\test1.html");
+        IndexData result = Parser.parseDoc(cwdString + "\\validInput\\test1.html");
 
-        JSONObject expected = new JSONObject();
-        expected.put("title", "Spoon-Knife");
-        expected.put("content", "Lorem Ipsum dolor set amet.... "
+        IndexData expected = new IndexData();
+        expected.setTitle("Spoon-Knife");
+        expected.setContent("Lorem Ipsum dolor set amet.... "
         + "this is content that I want to be read as the body/content by boilerpipe. "
         + "this is random text in another paragraph. ");
 
@@ -39,18 +40,18 @@ public class ParserTest {
 
         //All test will have the same output with different inputs to test boilerpipe's filtering when parsing
         //Loop to generate the multiple expected outputs
-        JSONArray expected = new JSONArray();
+        ArrayList<IndexData> expected = new ArrayList<>();
         for (int i = 1; i < 5; i++) {
-            JSONObject obj = new JSONObject();
-            obj.put("title", "Spoon-Knife");
-            obj.put("content", contentString);
-            obj.put("URL", "test" + i +".html");
-            expected.put(obj);
+            IndexData obj = new IndexData();
+            obj.setTitle("Spoon-Knife");
+            obj.setContent(contentString);
+            obj.setURL("validInput");
+            expected.add(obj);
         }
 
         //Function call on the directory to parse all results
-        Parser.iterateAndParseFiles(new File(cwdString), "");
-        JSONArray result = Parser.getParsedDataAsJSON();
+        Parser.iterateAndParseFiles(new File(cwdString), "", "");
+        ArrayList<IndexData> result = Parser.getParsedDataAsJSON();
 
         //convert to String so test is able to compare properly
         assertEquals(expected.toString(), result.toString());
