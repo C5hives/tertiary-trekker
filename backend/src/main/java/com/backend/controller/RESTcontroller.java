@@ -15,6 +15,11 @@ import com.backend.service.Service;
 @RequestMapping("/api")
 public class RESTcontroller {
     
+    @RequestMapping("/error")
+    public String defaultError() {
+        return "There was an error.";
+    }
+    
     @GetMapping("/test")
     public String testing(){
         return "Spring boot is working and test returns this string";

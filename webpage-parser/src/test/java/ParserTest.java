@@ -15,6 +15,7 @@ public class ParserTest {
     //To add the subsequent file structure for the test data
     private final String cwdString = cwd.getAbsolutePath() + "\\src\\test\\java\\dummyData";
 
+    //Test on validInputs, should return a proper filled IndexData object
     //Test on the one html file without header or footer
     @Test
     public void testParseDoc() {
@@ -45,15 +46,37 @@ public class ParserTest {
             IndexData obj = new IndexData();
             obj.setTitle("Spoon-Knife");
             obj.setContent(contentString);
-            obj.setURL("validInput");
+            obj.setURL("-");
             expected.add(obj);
         }
 
         //Function call on the directory to parse all results
-        Parser.iterateAndParseFiles(new File(cwdString), "", "");
-        ArrayList<IndexData> result = Parser.getParsedDataAsJSON();
+        Parser.iterateAndParseFiles(new File(cwdString + "\\validInput"), "", "");
+        ArrayList<IndexData> result = Parser.getParsedData();
 
         //convert to String so test is able to compare properly
         assertEquals(expected.toString(), result.toString());
+    }
+
+    //Test on badInputs, should return a empty/template IndexData object
+    //
+    //Test to see if code works on empty file
+    @Test
+    public void testEmptyFile() {
+        IndexData result = Parser.parseDoc(cwdString + "\\badInput\\empty.html");
+
+        IndexData expected = new IndexData();
+        assertEquals(expected.toString(), result.toString());
+
+    }
+
+    //Test to see if code works on empty file
+    @Test
+    public void testLargeFile() {
+        IndexData result = Parser.parseDoc(cwdString + "\\badInput\\largefile.html");
+
+        IndexData expected = new IndexData();
+        assertEquals(expected.toString(), result.toString());
+
     }
 }
