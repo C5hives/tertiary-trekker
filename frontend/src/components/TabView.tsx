@@ -1,6 +1,6 @@
 import React, { useState, useEffect, ReactElement } from 'react';
 import { Tabs, Tab, Box } from '@mui/material';
-import ResultList from './ResultList';
+import ResultList from './searchResult/ResultList';
 import SearchResult from '../types/SearchResult';
 import '../styles/TabView.css';
 

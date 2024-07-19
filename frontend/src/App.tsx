@@ -1,12 +1,13 @@
 import './App.css';
 import mainTheme from './themes/MainTheme';
 import  { useState } from 'react';
-import ResultList from './components/ResultList';
+import ResultList from './components/searchResult/ResultList';
 import SearchResult from './types/SearchResult';
 import SearchBar from './components/SearchBar';
 import Header from './components/Header';
 import { ThemeProvider } from '@emotion/react';
 import TabView from './components/TabView';
+import DetailsButton from './components/searchResult/DetailsButton';
 
 
 const mockResults: SearchResult[] = [
@@ -14,7 +15,7 @@ const mockResults: SearchResult[] = [
     id: '1',
     url: 'https://example.com/1',
     category: 'ntu',
-    title: 'Example Title 1',
+    title: 'Example Title 1 long long long long long long long long long long long long long long long long long long long long long ',
     content: 'Example content 1... long longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong',
   },
   {
