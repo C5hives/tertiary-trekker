@@ -1,10 +1,10 @@
 import { ReactElement } from "react";
-import SearchResultProps from "../props/SearchResultProps";
+import DocumentInfoProps from "../../props/DocumentInfoProps";
 import { Box, Typography } from "@mui/material";
 import BodyText from "./BodyText";
 import TitleText from "./TitleText";
 
-export default function DocumentInfoDetailed ({ result }: SearchResultProps): ReactElement {
+export default function DocumentInfoLeftPanel ({ result }: DocumentInfoProps): ReactElement {
     return (
         <Box sx = {{
             height: '100%',
@@ -17,19 +17,23 @@ export default function DocumentInfoDetailed ({ result }: SearchResultProps): Re
             gap: '6px',
             padding: 0
         }}>
-            <Box sx = {{ paddingLeft: 2, marginTop: 2 }}>
+            <Box sx = {{ paddingLeft: 2 }}>
                 <Typography variant="h6">Title</Typography>
             </Box>
             <Box sx = {{ border: '1px solid grey', padding: 2, borderRadius: 2 }}>
                 <TitleText url = {result.url} title = {result.title}></TitleText>
             </Box>
-            <Box sx = {{ paddingLeft: 2, marginTop: 2 }}>
+            <Box sx = {{ paddingLeft: 2, marginTop: 1 }}>
+                <Typography variant="h6">Category</Typography>
+            </Box>
+            <Box sx = {{ border: '1px solid grey', padding: 2, borderRadius: 2 }}>
+                <Typography variant="body2">{result.category}</Typography>
+            </Box>
+            <Box sx = {{ paddingLeft: 2, marginTop: 1 }}>
                 <Typography variant="h6">Content</Typography>
             </Box>
             <Box sx = {{ border: '1px solid grey', padding: 2, borderRadius: 2, flexGrow: 50 }}>
-                <Box >
-                    <BodyText content = { result.content }></BodyText>
-                </Box>
+                <BodyText content = { result.content }></BodyText>
             </Box>
         </Box>
     );

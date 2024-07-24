@@ -1,7 +1,7 @@
 import SearchResult from "../../types/SearchResult";
 
-interface SearchResultListProps {
+interface DocumentListProps {
     results: SearchResult[];
 }
 
-export default SearchResultListProps;
+export default DocumentListProps;

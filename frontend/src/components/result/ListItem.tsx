@@ -1,11 +1,10 @@
 import { ReactElement } from 'react';
 import { Card, CardContent } from '@mui/material';
-import '../../styles/searchResult/ResultListItem.css';
-import SearchResultProps from '../props/SearchResultProps';
-import ResultListItemHeader from './ResultListItemHeader';
+import DocumentInfoProps from '../props/DocumentInfoProps';
+import ListItemHeader from './ListItemHeader';
 import BodyText from './BodyText';
 
-export default function ResultListItem ({ result }: SearchResultProps): ReactElement {
+export default function ListItem ({ result }: DocumentInfoProps): ReactElement {
   return (
     <Card style={{ backgroundColor: "#EEEDEB" }} variant = 'outlined' sx = {{ margin: 1 }}>
       <CardContent sx= {{
@@ -19,7 +18,7 @@ export default function ResultListItem ({ result }: SearchResultProps): ReactEle
           paddingBottom: 2,
         }
       }}>
-          <ResultListItemHeader result = {result}></ResultListItemHeader>
+          <ListItemHeader result = {result}></ListItemHeader>
           <BodyText content = { result.content }></BodyText>
       </CardContent>
     </Card>

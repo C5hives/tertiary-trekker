@@ -1,7 +1,11 @@
-import { Box, Card, Modal, Typography } from "@mui/material";
+import { Box, Modal } from "@mui/material";
 import { ReactElement, useState } from "react";
 import PopupWindowProps from "../props/PopupWindowProps";
-import DocumentInfoDetailed from "./DocumentInfoDetailed";
+import DocumentInfoLeftPanel from "./leftPanel/DocumentInfoLeftPanel";
+import FindSimilarButton from "./rightPanel/FindSimilarButton";
+import SimilarDocumentList from "./rightPanel/SimilarDocumentList";
+import SearchResult from "../../types/SearchResult";
+import SimilarDocumentRightPanel from "./rightPanel/SimilarDocumentRightPanel";
 
 const style = {
     position: 'absolute' as 'absolute',
@@ -28,11 +32,10 @@ export default function DetailsWindow({ result, open, handleClose }: PopupWindow
       <Modal
         open = { open }
         onClose = { handleClose }
-        
       >
         <Box sx = {style}>
-            <DocumentInfoDetailed result = {result}></DocumentInfoDetailed>
-            <Card sx ={{height: '100%', width: '35%'}}>yooooo</Card>
+            <DocumentInfoLeftPanel result = {result}></DocumentInfoLeftPanel>
+            <SimilarDocumentRightPanel id = {result.id}></SimilarDocumentRightPanel>
         </Box>
       </Modal>
     </div>

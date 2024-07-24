@@ -1,7 +1,7 @@
 import SearchResult from "../../types/SearchResult";
 
-interface SearchResultProps {
+interface DocumentInfoProps {
     result: SearchResult;
 }
 
-export default SearchResultProps;
+export default DocumentInfoProps;

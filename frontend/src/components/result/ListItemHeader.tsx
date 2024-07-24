@@ -1,12 +1,12 @@
 import { ReactElement } from 'react';
 
-import SearchResultProps from '../props/SearchResultProps';
+import DocumentInfoProps from '../props/DocumentInfoProps';
 
-import '../../styles/searchResult/ResultListItemHeader.css';
+import '../../styles/result/ListItemHeader.css';
 import TitleText from './TitleText';
 import DetailsButton from './DetailsButton';
 
-export default function ResultListItemTitle ({ result }: SearchResultProps): ReactElement {
+export default function ListItemHeader ({ result }: DocumentInfoProps): ReactElement {
     return (
         <div className = 'title'>
             <TitleText url = {result.url} title = {result.title}></TitleText>

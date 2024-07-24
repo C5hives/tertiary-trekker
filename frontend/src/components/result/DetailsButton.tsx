@@ -1,11 +1,11 @@
 import { ReactElement, useState } from "react";
-import SearchResultProps from "../props/SearchResultProps";
+import DocumentInfoProps from "../props/DocumentInfoProps";
 import Button from "@mui/material/Button";
 import InfoIcon from '@mui/icons-material/Info';
 import Tooltip from "@mui/material/Tooltip";
-import DetailsWindow from "../popupWindow/DetailsWindow";
+import DetailsWindow from "../popup/DetailsWindow";
 
-export default function DetailsButton ({ result }: SearchResultProps): ReactElement {
+export default function DetailsButton ({ result }: DocumentInfoProps): ReactElement {
   // hook is used to track state of popup window
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
