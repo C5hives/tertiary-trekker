@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ReactElement, useMemo } from 'react';
-import { Tabs, Tab, Box } from '@mui/material';
+import { Tabs, Tab, Box, Typography } from '@mui/material';
 import List from '../result/List';
 import SearchResult from '../../types/SearchResult';
 import '../../styles/mainPage/TabView.css';
@@ -19,7 +19,16 @@ export default function TabView({ visibleCategories, documents }: TabViewProps):
 
     if (documents.size < 1 || visibleCategories.size < 1) {
         return (
-            <Box>Nothing to see here!</Box>
+            <Box sx = {{
+                flexGrow: 10,
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+                height: '100%',
+                textAlign: 'center',
+            }}>
+                <Typography>No results to display. Search for something!</Typography>
+            </Box>
           );
     }
 

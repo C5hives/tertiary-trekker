@@ -1,6 +1,6 @@
 // FilterComponent.tsx
 import React, { ReactElement } from 'react';
-import { FormControl, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
+import { FormControl, FormGroup, FormControlLabel, Checkbox, Box, Typography } from '@mui/material';
 
 interface FilterProps {
   categories: string[]
@@ -13,8 +13,18 @@ export default function Filter({ categories, visibleCategories, handleFilterChan
     handleFilterChange(event.target.name, event.target.checked)
   };
 
+  if (categories.length < 1) {
+    return (
+      <Typography variant = 'body1' sx = {{paddingLeft: 2}}>No Categories to Filter</Typography>
+    );
+  }
+
   return (
-    <FormControl component = "fieldset">
+    <Box sx = {{
+      padding: 1,
+      paddingLeft: 2
+    }}>
+      <FormControl component = "fieldset">
       <FormGroup>
         {
           categories.map((category) => (
@@ -33,5 +43,7 @@ export default function Filter({ categories, visibleCategories, handleFilterChan
         }
       </FormGroup>
     </FormControl>
+    </Box>
+    
   );
 };

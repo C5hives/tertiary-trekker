@@ -20,8 +20,17 @@ export default function SearchBar ({ onSearch }: { onSearch: (query: string) => 
   };
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', margin: 1 }}>
-        <Box component="img" src='logo.png' alt="Logo" sx={{ height: 100, mr: 1, borderRadius: 3 }} />
+    <Box sx={{
+      display: 'flex',
+      boxSizing: 'border-box',
+      flexDirection: 'row',
+      alignItems: 'center',
+      margin: 1,
+      gap: '9px',
+      width: '100%',
+      alignContent: 'space-between'
+    }}>
+        <Box component = "img" src = 'logo.png' alt = "Logo" sx={{ height: 100, borderRadius: 3, boxSizing: 'border-box', flexShrink: 0 }} />
         <TextField
             value = {query}
             onChange = {handleInputChange}
@@ -29,13 +38,14 @@ export default function SearchBar ({ onSearch }: { onSearch: (query: string) => 
             placeholder = "Search..."
             variant = "outlined"
             fullWidth
-            sx = {{ mr: 1 }}
+            sx={{ flexGrow: 2 }}
         />
         <Button
             variant = "contained"
             color = "primary"
             onClick = {handleSearch}
             startIcon = {<SearchIcon />}
+            sx={{ flexShrink: 0 }}
         >
             Search
         </Button>

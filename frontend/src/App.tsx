@@ -6,8 +6,8 @@ import Header from './components/mainPage/Header';
 import { ThemeProvider } from '@emotion/react';
 import TabView from './components/mainPage/TabView';
 import { searchForDocumentWithText } from './search/search';
-import Sidebar from './components/mainPage/sidebar/Sidebar';
 import { Box, createTheme } from '@mui/material';
+import InfoPanel from './components/mainPage/sidebar/InfoPanel';
 
 function App() {
   const [visibleCategories, setVisibleCategories] = useState<Set<string>>(new Set<string>());
@@ -16,6 +16,7 @@ function App() {
   const handleSearch = (query: string) => {
     setTimeout(() => {
       setDocuments(searchForDocumentWithText(query)); // Replace with actual API call results
+      setVisibleCategories(new Set(Array.from(documents.keys())));
     }, 1000);
   };
 
@@ -50,22 +51,23 @@ function App() {
     <ThemeProvider theme = { mainTheme }>
       <div className = "app">
         <Header></Header>
-        <div>
+        <Box sx = {{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          gap: '5px',
+          boxSizing: 'border-box'
+        }}>
           <SearchBar onSearch = {handleSearch} />
-          <h1>Displaying Results</h1>
-          <Box sx = {{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start'
-          }}>
-            <Sidebar
-              categories = {Array.from(documents.keys()).sort()}
-              visibleCategories = {visibleCategories}
-              handleFilterChange = {handleFilterChange}/>
-            <TabView visibleCategories = {visibleCategories} documents = {documents} />
-          </Box>
-        </div>
+          <InfoPanel
+            categories = {Array.from(documents.keys()).sort()}
+            visibleCategories = {visibleCategories}
+            handleFilterChange = {handleFilterChange}/>
+          <TabView
+            visibleCategories = {visibleCategories}
+            documents = {documents} />
+        </Box>
       </div>
     </ThemeProvider>
   );
