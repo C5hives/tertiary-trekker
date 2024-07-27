@@ -2,7 +2,11 @@ import React, { ReactElement, useState } from 'react';
 import { TextField, Button, Box } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
-export default function SearchBar ({ onSearch }: { onSearch: (query: string) => void }): ReactElement {
+interface SearchBarProps {
+  onSearch: (query: string) => void
+}
+
+export default function SearchBar ({ onSearch }: SearchBarProps): ReactElement {
   const [query, setQuery] = useState('');
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,32 +24,30 @@ export default function SearchBar ({ onSearch }: { onSearch: (query: string) => 
   };
 
   return (
-    <Box sx={{
+    <Box sx = {{
       display: 'flex',
-      boxSizing: 'border-box',
       flexDirection: 'row',
       alignItems: 'center',
-      margin: 1,
+      alignContent: 'flex-start',
+      padding: 1,
+      boxSizing: 'border-box',
       gap: '9px',
       width: '100%',
-      alignContent: 'space-between'
     }}>
-        <Box component = "img" src = 'logo.png' alt = "Logo" sx={{ height: 100, borderRadius: 3, boxSizing: 'border-box', flexShrink: 0 }} />
+        <Box component = "img" src = 'logo.png' alt = "Logo" sx={{ height: 100, borderRadius: 3, boxSizing: 'border-box' }} />
         <TextField
             value = {query}
             onChange = {handleInputChange}
             onKeyUp = {handleKeyPress}
             placeholder = "Search..."
             variant = "outlined"
-            fullWidth
-            sx={{ flexGrow: 2 }}
+            sx = {{ flexGrow : 1 }}
         />
         <Button
             variant = "contained"
             color = "primary"
             onClick = {handleSearch}
             startIcon = {<SearchIcon />}
-            sx={{ flexShrink: 0 }}
         >
             Search
         </Button>

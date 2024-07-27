@@ -1,10 +1,14 @@
-import { ReactElement } from 'react';
 import { Card, CardContent } from '@mui/material';
-import DocumentInfoProps from '../props/DocumentInfoProps';
-import ListItemHeader from './ListItemHeader';
+import { ReactElement } from 'react';
 import BodyText from './BodyText';
+import ListItemHeader from './ListItemHeader';
+import SearchResult from '../../types/SearchResult';
 
-export default function ListItem ({ result }: DocumentInfoProps): ReactElement {
+interface ListItemProps {
+  result: SearchResult;
+}
+
+export default function ListItem ({ result }: ListItemProps): ReactElement {
   return (
     <Card style={{ backgroundColor: "#EEEDEB" }} variant = 'outlined' sx = {{ margin: 1 }}>
       <CardContent sx= {{

@@ -1,10 +1,13 @@
 import { ReactElement } from 'react';
 import { Box } from '@mui/material';
-import DocumentListProps from '../../props/DocumentListProps';
 import SearchResult from '../../../types/SearchResult';
 import SimilarDocument from './SimilarDocument';
 
-export default function SimilarDocumentList({ results }: DocumentListProps): ReactElement{
+interface SimilarDocumentListProps {
+  results: SearchResult[];
+}
+
+export default function SimilarDocumentList({ results }: SimilarDocumentListProps): ReactElement{
   return (
     <Box sx = {{
         overflow: 'auto',

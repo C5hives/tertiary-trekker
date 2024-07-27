@@ -1,24 +1,24 @@
 import { ReactElement } from 'react';
-import { Typography, Link } from '@mui/material';
+import { Typography } from '@mui/material';
 
-import TitleDataProps from '../../props/TitleDataProps';
+interface TitleTextProps {
+    title: string
+}
 
-export default function TitleText ({ url, title }: TitleDataProps): ReactElement {
+export default function TitleText ({ title }: TitleTextProps): ReactElement {
     return (
         <Typography variant = "body2"
             component = "div"
             sx= {{
                 overflow: 'auto',
-                textOverflow: 'ellipsis',
+                textOverflow: 'clip',
                 whiteSpace: 'normal',
                 display: '-webkit-box',
                 WebkitBoxOrient: 'vertical',
                 WebkitLineClamp: 3,
             }}
         >
-            <Link href={url} target="_blank" rel="noopener">
-                { title }
-            </Link>
+            { title }
         </Typography>
     );
 };

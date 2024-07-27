@@ -1,5 +1,5 @@
 import { Box, Typography, Stack, Link } from '@mui/material';
-import '../../styles/mainPage/Header.css';
+import './styles/Header.css';
 
 export default function Header() {
     return (

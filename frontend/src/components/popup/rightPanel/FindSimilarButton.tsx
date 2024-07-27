@@ -1,12 +1,19 @@
 import { ReactElement } from "react";
 import Button from "@mui/material/Button";
-import DocumentIdProps from "../../props/DocumentIdProps";
 import { searchForSimilarDocuments } from "../../../search/search";
+import SearchResult from "../../../types/SearchResult";
 
-export default function FindSimilarButton ({ id, setSimilarDocuments }: DocumentIdProps): ReactElement {
+interface SimilarButtonProps {
+    id: string;
+    setSimilarDocuments: (documents: SearchResult[]) => void;
+    setSearched: (searched: boolean) => void;
+}
+
+export default function FindSimilarButton ({ id, setSimilarDocuments, setSearched }: SimilarButtonProps): ReactElement {
     const handleSearch = () => {
         const similarDocuments = searchForSimilarDocuments(id);
         setSimilarDocuments(similarDocuments);
+        setSearched(true);
     }
 
     return (
@@ -16,18 +23,12 @@ export default function FindSimilarButton ({ id, setSimilarDocuments }: Document
             color = "primary"
             sx = {{
                 width: '100%',
-                height: '10%',
+                height: '7%',
                 padding: '0',
                 margin: '0',
-                '& .MuiButton-startIcon': {
-                    margin: '0',
-                },
-                '& .MuiSvgIcon-root': {
-                    fontSize: '16px',
-                },
             }}
         >
-            Find Similar Documents
+            Find Similar
         </Button>
       );
 }

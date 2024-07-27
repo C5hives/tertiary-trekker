@@ -7,7 +7,7 @@ import { ThemeProvider } from '@emotion/react';
 import TabView from './components/mainPage/TabView';
 import { searchForDocumentWithText } from './search/search';
 import { Box, createTheme } from '@mui/material';
-import InfoPanel from './components/mainPage/sidebar/InfoPanel';
+import Drawer from './components/mainPage/filter/Drawer';
 
 function App() {
   const [visibleCategories, setVisibleCategories] = useState<Set<string>>(new Set<string>());
@@ -15,7 +15,7 @@ function App() {
   
   const handleSearch = (query: string) => {
     setTimeout(() => {
-      setDocuments(searchForDocumentWithText(query)); // Replace with actual API call results
+      setDocuments(searchForDocumentWithText(query)); // Replace with actual API call results soon
       setVisibleCategories(new Set(Array.from(documents.keys())));
     }, 1000);
   };
@@ -57,10 +57,11 @@ function App() {
           justifyContent: 'center',
           alignItems: 'flex-start',
           gap: '5px',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          wdith: '100%'
         }}>
           <SearchBar onSearch = {handleSearch} />
-          <InfoPanel
+          <Drawer
             categories = {Array.from(documents.keys()).sort()}
             visibleCategories = {visibleCategories}
             handleFilterChange = {handleFilterChange}/>

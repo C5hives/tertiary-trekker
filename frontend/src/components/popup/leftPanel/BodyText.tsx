@@ -1,9 +1,11 @@
 import { ReactElement } from 'react';
 import { Typography } from '@mui/material';
 
-import BodyDataProps from '../../props/BodyDataProps';
+interface BodyTextProps {
+    content: string
+};
 
-export default function BodyText (bodyData: BodyDataProps): ReactElement {
+export default function BodyText (bodyData: BodyTextProps): ReactElement {
     return (
         <Typography
             variant="body2"

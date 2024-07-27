@@ -2,10 +2,9 @@ import React, { useState, useEffect, ReactElement, useMemo } from 'react';
 import { Tabs, Tab, Box, Typography } from '@mui/material';
 import List from '../result/List';
 import SearchResult from '../../types/SearchResult';
-import '../../styles/mainPage/TabView.css';
 
 interface TabViewProps {
-  visibleCategories: Set<string>,
+  visibleCategories: Set<string>
   documents: Map<string, SearchResult[]>
 }
 
@@ -33,7 +32,8 @@ export default function TabView({ visibleCategories, documents }: TabViewProps):
     }
 
     return (
-        <Box className = 'results' sx = {{
+        <Box sx = {{
+            backgroundColor: '#FBFCFE',
             display: 'flex',
             flexDirection: 'column',
             flexGrow: 1,

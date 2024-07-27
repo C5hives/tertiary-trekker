@@ -1,9 +1,12 @@
 import { ReactElement } from 'react';
-import { Typography, Link } from '@mui/material';
+import { Link, Typography } from '@mui/material';
 
-import TitleDataProps from '../props/TitleDataProps';
+interface TitleTextProps {
+    url: string
+    title: string
+}
 
-export default function TitleText ({ url, title }: TitleDataProps): ReactElement {
+export default function TitleText ({ url, title }: TitleTextProps): ReactElement {
     return (
         <Typography variant = "h6"
             component = "div"
