@@ -1,14 +1,16 @@
-import React, { useState, useEffect, ReactElement, useMemo } from 'react';
+import React, { useState, ReactElement, useMemo, useEffect } from 'react';
 import { Tabs, Tab, Box, Typography } from '@mui/material';
 import List from '../result/List';
 import SearchResult from '../../types/SearchResult';
+import Response from '../../types/Response';
 
 interface TabViewProps {
   visibleCategories: Set<string>
   documents: Map<string, SearchResult[]>
+  setResponse: (response: Response) => void;
 }
 
-export default function TabView({ visibleCategories, documents }: TabViewProps): ReactElement {
+export default function TabView({ visibleCategories, documents, setResponse }: TabViewProps): ReactElement {
     const [currentIndex, setCurrentIndex] = useState<number>(0);
 
     const categories: string[] = useMemo(() => Array.from(visibleCategories.values()).sort(), [visibleCategories]);
@@ -16,9 +18,16 @@ export default function TabView({ visibleCategories, documents }: TabViewProps):
         setCurrentIndex(newIndex);
     };
 
-    if (documents.size < 1 || visibleCategories.size < 1) {
+    useEffect(() => {
+        if (currentIndex >= categories.length) {
+          setCurrentIndex(0);
+        }
+      }, [categories]);
+
+    if (documents.size < 1) {
         return (
             <Box sx = {{
+                display: 'flex',
                 flexGrow: 10,
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -27,6 +36,22 @@ export default function TabView({ visibleCategories, documents }: TabViewProps):
                 textAlign: 'center',
             }}>
                 <Typography>No results to display. Search for something!</Typography>
+            </Box>
+          );
+    }
+
+    if (visibleCategories.size < 1) {
+        return (
+            <Box sx = {{
+                display: 'flex',
+                flexGrow: 10,
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+                height: '100%',
+                textAlign: 'center',
+            }}>
+                <Typography>No categories to display. Check your filter options.</Typography>
             </Box>
           );
     }
@@ -60,10 +85,10 @@ export default function TabView({ visibleCategories, documents }: TabViewProps):
                         id = {`tabpanel-${index}`}
                         aria-labelledby = {`tab-${index}`}
                         key = {index}
-                        sx = {{ padding: 1, flexGrow: 1, overflowY: 'auto' }}
+                        sx = {{ paddingTop: 1, flexGrow: 1, overflowY: 'auto' }}
                     >
                         {
-                            currentIndex === index && <List results = {documents.get(category)!} />
+                            currentIndex === index && <List results = {documents.get(category)!} setResponse = {setResponse} />
                         }
                     </Box>
                 ))

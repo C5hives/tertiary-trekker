@@ -3,12 +3,14 @@ import { ReactElement } from 'react';
 import BodyText from './BodyText';
 import ListItemHeader from './ListItemHeader';
 import SearchResult from '../../types/SearchResult';
+import Response from "../../types/Response";
 
 interface ListItemProps {
   result: SearchResult;
+  setResponse: (response: Response) => void;
 }
 
-export default function ListItem ({ result }: ListItemProps): ReactElement {
+export default function ListItem ({ result, setResponse }: ListItemProps): ReactElement {
   return (
     <Card style={{ backgroundColor: "#EEEDEB" }} variant = 'outlined' sx = {{ margin: 1 }}>
       <CardContent sx= {{
@@ -22,7 +24,7 @@ export default function ListItem ({ result }: ListItemProps): ReactElement {
           paddingBottom: 2,
         }
       }}>
-          <ListItemHeader result = {result}></ListItemHeader>
+          <ListItemHeader result = {result} setResponse = {setResponse}></ListItemHeader>
           <BodyText content = { result.content }></BodyText>
       </CardContent>
     </Card>

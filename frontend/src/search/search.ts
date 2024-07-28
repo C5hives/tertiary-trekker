@@ -1,4 +1,6 @@
+import Response from "../types/Response";
 import SearchResult from "../types/SearchResult";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 const categories = ['nus', 'ntu', 'smu', 'sutd', 'sit', 'suss'];
 
@@ -23,21 +25,58 @@ function getRandomWords(num: number): string {
   return Array.from({ length: num }, () => words[Math.floor(Math.random() * words.length)]).join(' ');
 }
 
-function searchForDocumentWithText(text: string): Map<string, SearchResult[]> {
-    const documentMap = new Map<string, SearchResult[]>();
-    for (const document of mockResults) {
-      if (documentMap.has(document.category)) {
-        documentMap.get(document.category)!.push(document);
-      } else {
-        documentMap.set(document.category, [document]);
-      }
+async function searchForDocumentWithText(text: string): Promise<[Response, Map<string, SearchResult[]>]> {
+    const documentMap: Map<string, SearchResult[]> = new Map();
+    let httpResponse: Response = {code: 200, message: 'OK'}
+    const serverUrl: string = `https://tertiary-trekker-backend.onrender.com/api/search?term=${text}`;
+
+    try {
+        const response: AxiosResponse = await axios.get(serverUrl);
+        httpResponse = handleResponseMessage(response.status);
+        
+        for (const document of response.data) {
+            if (documentMap.has(document.category)) {
+                documentMap.get(document.category)!.push(document);
+            } else {
+                documentMap.set(document.category, [document]);
+            }
+        }
+    } catch (error) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response) {
+            const status: number = axiosError.response.status;
+            httpResponse = handleResponseMessage(status);
+        }
     }
-    return documentMap;
+    return [httpResponse, documentMap];
 }
 
-function searchForSimilarDocuments(id: string): SearchResult[] {
-    console.log(id);
-    return mockResults;
+async function searchForSimilarDocuments(id: string): Promise<[Response, SearchResult[]]> {
+    let httpResponse: Response = {code: 200, message: 'OK'}
+    const serverUrl: string = `https://tertiary-trekker-backend.onrender.com/api/MLTsearch?id=${id}`;
+
+    try {
+        const response: AxiosResponse = await axios.get(serverUrl);
+        httpResponse = handleResponseMessage(response.status);
+        return [httpResponse, response.data];
+    } catch (error) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response) {
+            const status: number = axiosError.response.status;
+            httpResponse = handleResponseMessage(status);
+        }
+    }
+    return [httpResponse, []];
+}
+
+function handleResponseMessage(code: number): Response {
+    if (code >= 200 && code <= 299) {
+        return { code: code, message: 'OK.'};
+    } else if (code >= 400 && code <= 599) {
+        return { code: code, message: 'Something went wrong with the server. Please try again later.'};
+    } else {
+        return { code: code, message: 'Something went wrong. Please try again later.'};
+    }
 }
 
 export {

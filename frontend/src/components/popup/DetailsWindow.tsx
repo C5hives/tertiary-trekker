@@ -4,14 +4,16 @@ import LeftPanel from "./leftPanel/LeftPanel";
 import RightPanel from "./rightPanel/RightPanel";
 import { Divider } from '@mui/material';
 import SearchResult from "../../types/SearchResult";
+import Response from '../../types/Response';
 
 interface DetailsWindowProps {
   result: SearchResult;
   open: boolean
   handleClose: (open: boolean) => void
+  setResponse: (response: Response) => void;
 }
 
-export default function DetailsWindow({ result, open, handleClose }: DetailsWindowProps): ReactElement {
+export default function DetailsWindow({ result, open, handleClose, setResponse }: DetailsWindowProps): ReactElement {
   return (
     <div>
       <Modal
@@ -33,12 +35,12 @@ export default function DetailsWindow({ result, open, handleClose }: DetailsWind
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            gap: 2,
+            gap: '1%',
             padding: 2,
         }}>
             <LeftPanel result = {result}></LeftPanel>
             <Divider orientation = "vertical"></Divider>
-            <RightPanel id = {result.id}></RightPanel>
+            <RightPanel id = {result.id} setResponse = {setResponse}></RightPanel>
         </Box>
       </Modal>
     </div>

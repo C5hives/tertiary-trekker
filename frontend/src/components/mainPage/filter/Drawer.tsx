@@ -4,7 +4,6 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import Filter from "./Filter";
 import { styled } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
 const drawerWidth = 240;
@@ -20,7 +19,7 @@ interface InfoPanelProps {
     categories: string[]
     visibleCategories: Set<string>
     handleFilterChange: (category: string, checked: boolean) => void
-  }
+}
 
 export default function InfoPanel({categories , visibleCategories, handleFilterChange}: InfoPanelProps): ReactElement {
   const [open, setOpen] = useState(false);
@@ -40,24 +39,31 @@ export default function InfoPanel({categories , visibleCategories, handleFilterC
             <FilterListIcon /> Open Filters
         </Button>
       <Drawer
-        sx={{
+        sx = {{
           width: drawerWidth,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
           },
+          padding: 1
         }}
         variant = "persistent"
         anchor = "left"
-        open={open}
+        open = {open}
       >
-        <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
-            <ChevronLeftIcon />
-          </IconButton>
-        </DrawerHeader>
-        <Typography variant = 'h6' sx = {{ padding: 1, paddingLeft: 2 }}>Filter Options</Typography>
+        <Box sx = {{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+        }}>
+          <Typography variant = 'h6' sx = {{ padding: 1, paddingLeft: 2 }}>Filter Options</Typography>
+          <DrawerHeader>
+            <IconButton onClick={handleDrawerClose}>
+              <ChevronLeftIcon />
+            </IconButton>
+          </DrawerHeader>
+        </Box>
         <Divider />
         <Filter
             categories = {categories}

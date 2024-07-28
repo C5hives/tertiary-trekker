@@ -3,12 +3,14 @@ import { ReactElement } from 'react';
 import DetailsButton from './DetailsButton';
 import SearchResult from '../../types/SearchResult';
 import TitleText from './TitleText';
+import Response from "../../types/Response";
 
 interface ListItemHeaderProps {
     result: SearchResult;
-  }
+    setResponse: (response: Response) => void;
+}
 
-export default function ListItemHeader ({ result }: ListItemHeaderProps): ReactElement {
+export default function ListItemHeader ({ result, setResponse }: ListItemHeaderProps): ReactElement {
     return (
         <Box sx = {{
             display: 'flex',
@@ -20,7 +22,7 @@ export default function ListItemHeader ({ result }: ListItemHeaderProps): ReactE
             overflow: 'hidden',
         }}>
             <TitleText url = {result.url} title = {result.title}></TitleText>
-            <DetailsButton result = {result}></DetailsButton>
+            <DetailsButton result = {result} setResponse = {setResponse}></DetailsButton>
         </Box>
     );
 };

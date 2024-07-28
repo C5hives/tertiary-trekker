@@ -3,12 +3,14 @@ import { Button, Tooltip } from "@mui/material";
 import InfoIcon from '@mui/icons-material/Info';
 import DetailsWindow from "../popup/DetailsWindow";
 import SearchResult from "../../types/SearchResult";
+import Response from "../../types/Response";
 
 interface DetailsButtonProps {
   result: SearchResult
+  setResponse: (response: Response) => void;
 }
 
-export default function DetailsButton ({ result }: DetailsButtonProps): ReactElement {
+export default function DetailsButton ({ result, setResponse }: DetailsButtonProps): ReactElement {
   // hook is used to track state of popup window
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
@@ -43,7 +45,7 @@ export default function DetailsButton ({ result }: DetailsButtonProps): ReactEle
               >
               </Button>
           </Tooltip>
-          <DetailsWindow result = {result} open = {open} handleClose = {handleClose}></DetailsWindow>
+          <DetailsWindow result = {result} open = {open} handleClose = {handleClose} setResponse = {setResponse}></DetailsWindow>
         </div>
         
       );

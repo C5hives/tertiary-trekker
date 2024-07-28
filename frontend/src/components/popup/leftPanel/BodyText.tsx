@@ -18,7 +18,7 @@ export default function BodyText (bodyData: BodyTextProps): ReactElement {
                 width: '100%',
                 height: '100%',
                 flexGrow: 50,
-                WebkitLineClamp: 25,
+                WebkitLineClamp: 10,
             }}
         >
             {bodyData.content}

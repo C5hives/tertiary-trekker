@@ -16,7 +16,7 @@ export default function TitleText ({ url, title }: TitleTextProps): ReactElement
                 whiteSpace: 'nowrap'
             }}
         >
-            <Link href={url} target="_blank" rel="noopener">
+            <Link href = {url} target="_blank" rel="noopener">
                 { title }
             </Link>
         </Typography>
