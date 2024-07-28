@@ -28,6 +28,10 @@ function App() {
     }
   }, [response]);
 
+  useEffect(() => {
+    document.title = "Tertiary Trekker";
+ }, []);
+
   const evaluateSeverity = (code: number | undefined): "success" | "warning" | "error" | "info" | undefined => {
     if (code == null) {
       return undefined;
