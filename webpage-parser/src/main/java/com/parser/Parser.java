@@ -43,7 +43,7 @@ public class Parser {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return new IndexData();
     }
 
     public static void iterateAndParseFiles(File f, String URLname, String category) {
@@ -52,7 +52,9 @@ public class Parser {
         if (f.isFile()) {
             IndexData obj = Parser.parseDoc(f.getPath().toString());
             if (obj != null) {
-                obj.setURL(URLname.substring(1));
+                if (URLname != "") {
+                    obj.setURL("https://" + URLname.substring(1));
+                }
                 obj.setCategory(category);
                 Parser.result.add(obj);
             }
@@ -72,7 +74,7 @@ public class Parser {
         }
     }
 
-    public static ArrayList<IndexData> getParsedDataAsJSON() {
+    public static ArrayList<IndexData> getParsedData() {
         return Parser.result;
     }
 }

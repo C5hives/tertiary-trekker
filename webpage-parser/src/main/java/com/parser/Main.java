@@ -28,10 +28,49 @@ import com.backend.model.IndexData;
 public class Main {
     //Change this DIR to where the parsed data will be within project dir
     static final String CRAWL_JOB_DIR = "C:\\data\\crawlJob_20062024_222512";
-    private static Logger logger = Logger.getLogger(Main.class.getName());
-    
+    static Logger logger = Logger.getLogger(Main.class.getName());
+
 
     public static void main(String[] args) {
+    
+        // Temp main function for users to test out the parser in Milestone #2
+        // if (args.length == 0) {
+        //     System.out.println("Please enter the file as arguments");
+        //     System.exit(0);
+        // }
+
+        // try {
+        //     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd");
+        //     String FileName = (new File("").getAbsolutePath()) 
+        //         + "\\logs\\"
+        //         + dtf.format(LocalDateTime.now())+"_Parser.log";
+        //     File logFile = new File(FileName);
+        //     logFile.createNewFile();
+        //     logger.setLevel(Level.FINE);
+        //     logger.addHandler(new FileHandler(logFile.toPath().toString()));
+
+        //     File argFile = new File(args[0]);
+        //     if (argFile.isFile()) {
+        //         IndexData result = Parser.parseDoc(argFile.toPath().toString());
+        //         logger.log(Level.INFO, "IndexData : " + result.toString() + " was parsed.");
+        //     } else if (argFile.isDirectory()) {
+        //         //Must be in the same directory structure as crawl directory 
+        //         //first layer - category, subseqeunt layer - url
+        //         Parser.iterateAndParseFiles(argFile, "", "");
+        //         ArrayList<IndexData> result = Parser.getParsedData();
+        //         logger.log(Level.INFO, "File Directory is being parsed.");
+        //         for (IndexData data : result) {
+        //             logger.log(Level.INFO, "IndexData : " + data.toString() + " was parsed.");
+        //         }
+        //     }
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        //     logger.log(Level.SEVERE, e.getMessage());
+        // }
+        
+
+        // Blanked out for Milestone #2 Submission since database cannot be accessed
+        // The code below will parse the HTML files stored at CRAWL_JOB_DIR and send them to the database
         try {
             //Set up logger & file to store logs
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd");
@@ -45,7 +84,7 @@ public class Main {
 
 
             //Build client and connection
-            final HttpHost host = new HttpHost("175.156.148.208", 9200, "http");
+            final HttpHost host = new HttpHost("175.156.233.42", 9200, "http");
             final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(new AuthScope(host), new UsernamePasswordCredentials("server", "j#52!vB-1D<!"));
             
@@ -63,7 +102,7 @@ public class Main {
 
             //Parse data
             Parser.iterateAndParseFiles(new File(CRAWL_JOB_DIR), "", "");
-            ArrayList<IndexData> data = Parser.getParsedDataAsJSON();
+            ArrayList<IndexData> data = Parser.getParsedData();
 
             //Form the bulk request to send to database
             String index = "crawl-data";
