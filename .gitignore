@@ -1,5 +1,7 @@
 **/.vscode/
 
+*/target/** 
+
 webpage-scraper/database/*
 webpage-scraper/dist/**/*
 webpage-scraper/jobs/**/*
