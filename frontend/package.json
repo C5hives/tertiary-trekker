@@ -48,6 +48,7 @@
     ]
   },
   "devDependencies": {
+    "@flydotio/dockerfile": "^0.5.8",
     "react-error-overlay": "^6.0.9"
   }
 }

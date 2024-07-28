@@ -9,23 +9,11 @@ interface ListProps {
   setResponse: (response: Response) => void;
 }
 
-export default function List({ results, setResponse }: ListProps): ReactElement{
-  const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
-
-  useEffect(() => {
-    const seen = new Set<string>();
-    const uniqueResults = results.filter(document => {
-      const isDuplicate = seen.has(document.id);
-      seen.add(document.id);
-      return !isDuplicate;
-    });
-    setFilteredResults(uniqueResults);
-  }, [results]);
-  
+export default function List({ results, setResponse }: ListProps): ReactElement{  
   return (
     <Box>
       <Typography variant = 'body2' sx = {{ fontStyle: 'italic', color: 'grey', paddingLeft: 1 }}>Displaying {results.length} result{results.length > 1 ? 's' : ''}</Typography>
-      {filteredResults.map((result: SearchResult) => (
+      {results.map((result: SearchResult) => (
         <ListItem key = {result.id} result = {result} setResponse = {setResponse} />
       ))}
     </Box>

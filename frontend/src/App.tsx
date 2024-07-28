@@ -23,7 +23,7 @@ function App() {
       return;
     }
 
-    if(response.code < 200 && response.code > 299) {
+    if(response.code < 200 || response.code > 299) {
       setOpen(true);
     }
   }, [response]);
