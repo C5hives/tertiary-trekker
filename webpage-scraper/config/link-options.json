@@ -1,0 +1,119 @@
+{
+    "universities": [
+        {
+            "name": "nus",
+            "include": [
+                "https://www.nus.edu.sg/",
+                "https://share.nus.edu.sg/"
+            ],
+            "linkMustContain": [
+                "nus.edu.sg"
+            ],
+            "exclude": [
+                "https://share.nus.edu.sg/",
+                "https://myportal.nus.edu.sg/",
+                "https://inetapps.nus.edu.sg/",
+                "https://etd.nus.edu.sg/",
+                "https://scholarbank.nus.edu.sg/",
+                "https://blog.nus.edu.sg/",
+                "https://wiki.nus.edu.sg",
+                "https://nus.atlassian.net/",
+                "https://myedurec.nus.edu.sg/",
+                "https://webvpn.nus.edu.sg/",
+                "https://myapplications.nus.edu.sg/",
+                "https://myaces.nus.edu.sg/",
+                "https://map.nus.edu.sg/",
+                "https://lib.nus.edu.sg/",
+                "https://exchange.nus.edu.sg/",
+                "https://discovery.nus.edu.sg/",
+                "https://community.nus.edu.sg/",
+                "https://cn.nus.edu.sg/",
+                "https://cithelp.nus.edu.sg/",
+                "https://careers.nus.edu.sg/",
+                "https://canvas.nus.edu.sg",
+                "https://bbis.nus.edu.sg/",
+                "https://alumnilifelong.nus.edu.sg/",
+                "https://alumnet-login.nus.edu.sg/",
+                "http://alumnet.nus.edu.sg/",
+                "https://www.nus.edu.sg/inside-nus/",
+                "https://www.nus.edu.sg/staff/",
+                "https://www.nus.edu.sg/cn/",
+                "https://staffportal.nus.edu.sg/",
+                "https://www.nus.edu.sg/alumnet/",
+                "https://www.nus.edu.sg/thought-leadership/",
+                "https://luminus.nus.edu.sg/",
+                "https://libportal.nus.edu.sg/",
+                "https://www.nus.edu.sg/research/"
+            ]
+        },
+        {
+            "name": "ntu",
+            "include": [
+                "https://www.ntu.edu.sg/"
+            ],
+            "linkMustContain": [
+                "ntu.edu.sg"
+            ],
+            "exclude": [
+                "test"
+            ]
+        },
+        {
+            "name": "sit",
+            "include": [
+                "https://www.singaporetech.edu.sg/"
+            ],
+            "linkMustContain": [
+                "singaporetech.edu.sg"
+            ],
+            "exclude": []
+        },
+        {
+            "name": "smu",
+            "include": [
+                "https://www.smu.edu.sg/"
+            ],
+            "linkMustContain": [
+                "smu.edu.sg"
+            ],
+            "exclude": []
+        },
+        {
+            "name": "suss",
+            "include": [
+                "https://www.suss.edu.sg/"
+            ],
+            "linkMustContain": [
+                "suss.edu.sg"
+            ],
+            "exclude": []
+        },
+        {
+            "name": "sutd",
+            "include": [
+                "https://www.sutd.edu.sg/"
+            ],
+            "linkMustContain": [
+                "sutd.edu.sg"
+            ],
+            "exclude": [] 
+        }
+    ],
+    "globalExclude": [
+        "https://www.instagram.com/",
+        "https://www.linkedin.com/",
+        "https://www.soundcloud.com/",
+        "https://www.youtube.com/",
+        "https://www.twitter.com/",
+        "https://www.google.com/",
+        "https://www.forbes.com/",
+        "https://www.tiktok.com/",
+        "https://www.instagram.com/",
+        "https://telegram.org/",
+        "https://t.me/",
+        "mailto:"
+    ]
+}
+
+
+
