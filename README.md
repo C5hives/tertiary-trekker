@@ -7,8 +7,11 @@ This project aims to assist prospective University students by presenting course
 
 Made for NUS Orbital 2024.
 
-# 2. Web Crawler
-## Installation
+# 2. External README
+Can be found at https://docs.google.com/document/d/1WzcwicQI4hg8aESSdqEEhPX5unTr_2-EmTcJpDUixUE/edit?usp=sharing
+
+# 3. Installation
+## Web Scraper
 1. Clone the Repository using
 ```
 git clone https://github.com/C5hives/tertiary-trekker
@@ -28,7 +31,7 @@ npm install
 npm start
 ```
 
-# 2. File Parser
+## File Parser
 1. Same as Web Crawler
 
 2. From the project directory, navigate to the `webpage-parser` Folder.
@@ -43,12 +46,15 @@ mvn install
 mvn clean test
 ```
 
-# 3. Database and Backend Server
-WIP
+## Database
+Check external README
 
-# 4. Website
-WIP
+## Backend
+Check external README
 
-# Collaborators
+## Frontend
+Check external README
+
+# 4. Collaborators
 [Jewi](https://github.com/jewiteo)
 
