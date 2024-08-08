@@ -1,5 +1,0 @@
-{
-    "linkLocation": "../../config/link-options.json",
-    "databaseLocation": "./database/",
-    "downloadRootDirectory": "./jobs/"
-}
